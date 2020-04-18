@@ -1,0 +1,4 @@
+env
+geckodriver.log
+git.sh
+__pycache__

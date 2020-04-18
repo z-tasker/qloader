@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "qloader"
+version = "2.1.0"
+description = "Gather results from some search engine"
+authors = ["mgrasker <mgraskertheband@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+selenium = "^3.141.0"
+requests = "^2.23.0"
+boto3 = "^1.12.5"
+pillow = "^7.1.1"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+ipython = "^7.12.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
