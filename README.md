@@ -45,6 +45,7 @@ mkdir -p /tmp/qloader
 poetry run ./query.py \
   --experiment-name "null-test" \
   --hostname "null-tester" \
+  --endpoint "google-images" \
   --metadata-path /tmp/qloader/metadata.json \
   --output-path "./downloads" \
   --skip-upload \
@@ -65,10 +66,10 @@ docker run \
         --experiment-name "null-test" \
         --hostname "null-tester" \
         --endpoint "google-images" \
-        --query-terms "Beautiful Complexity" \
         --metadata-path "/tmp/qloader/metadata.json" \
         --output-path "/tmp/qloader" \
-        --skip-upload
+        --skip-upload \
+        --query-terms "Beautiful Complexity"
 ```
 
 Switch browsers by setting `--env QLOADER_BROWSER=Chrome` in the `docker run` command, before the image name.
