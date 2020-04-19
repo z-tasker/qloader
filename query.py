@@ -161,6 +161,7 @@ def main(
         )
         metadata = dict()
     metadata.update({"endpoint": endpoint})
+    metadata.update({"ran_at": ran_at})
     documents = []
     try:
         for doc in globals()[f"get_{endpoint}"](query_terms, store, max_images):
