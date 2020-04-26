@@ -16,9 +16,9 @@ def fetch_google_image_urls(
     driver: WebDriver,
     sleep_between_interactions: int = 1,
     desired_count: int = 100,
-) -> Generator[str, None, None]:
+) -> Set(str):
     """
-        yield google image urls until desired_count is reached, or we cannot scrape our way forward.
+        yield google image urls until desired_count is reached
         The find_elements_by_css_selector approach for interacting with the page feels a little bit brittle, it's possible these values could change.
     """
 
@@ -35,7 +35,7 @@ def fetch_google_image_urls(
     driver.get(search_url)
     random_sleep(sleep_between_interactions)
 
-    image_count = 0
+    image_links = set()
     results_start = 0
     while True:  # browse and download until we hit our target image count
         scroll_to_end(driver)
@@ -59,17 +59,17 @@ def fetch_google_image_urls(
             # extract image urls
             actual_images = driver.find_elements_by_css_selector("img.n3VNCb")
             for actual_image in actual_images:
-                image_src = actual_image.get_attribute("src")
-                if image_src is not None and "http" in image_src:
-                    yield image_src
-                    image_count += 1
-                    if image_count >= desired_count:
+                if actual_image.get_attribute(
+                    "src"
+                ) and "http" in actual_image.get_attribute("src"):
+                    image_links.add(actual_image.get_attribute("src"))
+                    if len(image_links) >= desired_count:
                         # We're done
-                        return
+                        return image_links
 
         else:
-            print(f"Found: {image_count} image links, looking for more ...")
-            time.sleep(30)
+            print(f"Found: {len(image_links)} image links, looking for more ...")
+            random_sleep(sleep_between_interactions * 2)
             load_more_button = driver.find_element_by_css_selector(".mye4qd")
             if load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
@@ -77,9 +77,9 @@ def fetch_google_image_urls(
             else:
                 print(driver.page_source)
                 print(
-                    f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, abandoning search"
+                    f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, returning what we have so far"
                 )
-                return
+                return image_links
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
