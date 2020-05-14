@@ -6,6 +6,7 @@ import io
 import os
 import json
 import time
+import traceback
 from collections import defaultdict, UserDict
 from datetime import datetime
 from pathlib import Path
@@ -78,7 +79,7 @@ def persist_image(folder: Path, image_id: str, url: str) -> None:
     image = Image.open(io.BytesIO(image_content)).convert("RGB")
     image_file = folder.joinpath(image_id + ".jpg")
     with open(image_file, "w") as f:
-        image.resize((300, 300), PIL.Image.ANTIALIAS).save(
+        image.resize((300, 300), Image.ANTIALIAS).save(
             f, "JPEG", optimize=True, quality=85
         )
 
@@ -121,6 +122,7 @@ def get_google_images(
                     }
                 )
             except Exception as e:
+                traceback.print_exc()
                 errors[str(type(e))] += 1
     total_errors = sum(errors.values())
     print(f"retrieved {i} images from google images with {total_errors} errors")
