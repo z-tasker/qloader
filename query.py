@@ -48,8 +48,9 @@ if BROWSER == "Chrome":
 ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
 SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
 S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL", "https://fra1.digitaloceanspaces.com")
+S3_ENDPOINT_URL = None if S3_ENDPOINT_URL in ["", "None"] else S3_ENDPOINT_URL
 S3_REGION_NAME = os.getenv("S3_REGION_NAME", "fra1")
-BUCKET_NAME = "qload"
+BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "qload")
 
 
 def get_s3_client() -> botocore.client.s3:
@@ -77,7 +78,9 @@ def persist_image(folder: Path, image_id: str, url: str) -> None:
     image = Image.open(io.BytesIO(image_content)).convert("RGB")
     image_file = folder.joinpath(image_id + ".jpg")
     with open(image_file, "w") as f:
-        image.save(f, "JPEG", quality=85)
+        image.resize((300, 300), PIL.Image.ANTIALIAS).save(
+            f, "JPEG", optimize=True, quality=85
+        )
 
 
 class ManifestDocument(UserDict):
@@ -134,7 +137,8 @@ class NoDocumentsReturnedError(Exception):
 
 
 def main(
-    experiment_name: str,
+    trial_id: str,
+    ran_at: str,
     hostname: str,
     endpoint: str,
     query_terms: str,
@@ -142,10 +146,9 @@ def main(
     metadata_path: Path,
     max_images: int,
     upload_to_s3: bool = True,
-):
-    ran_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+) -> None:
     output_path = (
-        output_path.joinpath(experiment_name).joinpath(hostname).joinpath(ran_at)
+        output_path.joinpath(trial_id).joinpath(hostname).joinpath(ran_at)
     )  # make each run it's own folder
     output_path.mkdir(parents=True, exist_ok=True)
     endpoint = endpoint.replace(
@@ -180,7 +183,7 @@ def main(
         s3_client = get_s3_client()
 
         remote_path_root = Path(
-            f"data/{experiment_name}/{hostname}/{query_terms.replace(' ', '_')}/{ran_at}"
+            f"data/{trial_id}/{hostname}/{query_terms.replace(' ', '_')}/{ran_at}"
         )
         remote_manifest_path = remote_path_root.joinpath("manifest.json")
         print("uploading file:", str(manifest), BUCKET_NAME, str(remote_manifest_path))
@@ -194,13 +197,16 @@ def main(
             )
 
     print(
-        f'{experiment_name} - "{query_terms}" completed query against {endpoint}, images gathered here: {store}.'
+        f'{trial_id} - "{query_terms}" completed query against {endpoint}, images gathered here: {store}.'
     )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment-name", required=True)
+    parser.add_argument("--trial-id", required=True)
+    parser.add_argument(
+        "--ran-at", required=True, help="timestamp of when this query was run"
+    )
     parser.add_argument(
         "--hostname", required=True, help="The name of the computer running the query"
     )
@@ -216,12 +222,10 @@ if __name__ == "__main__":
         help="JSON file with metadata to associate with query results",
     )
     parser.add_argument(
-        "--output-path",
-        required=True,
-        help="Where to store results locally",
+        "--output-path", required=True, help="Where to store results locally",
     )
     parser.add_argument("--query-terms", required=True)
-    parser.add_argument("--max-images", default=100)
+    parser.add_argument("--max-images", type=int, default=100)
     parser.add_argument(
         "--skip-upload",
         action="store_true",
@@ -229,7 +233,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     main(
-        experiment_name=args.experiment_name,
+        trial_id=args.trial_id,
+        ran_at=args.ran_at,
         hostname=args.hostname,
         endpoint=args.endpoint,
         query_terms=args.query_terms,
