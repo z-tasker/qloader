@@ -4,7 +4,7 @@ import time
 from selenium import webdriver
 
 
-def random_sleep(min_time: int) -> None:
+def random_sleep(min_time: float) -> None:
     """
         Fuzz wait times between [min_time, min_time*2]
     """
@@ -14,7 +14,7 @@ def random_sleep(min_time: int) -> None:
 def fetch_google_image_urls(
     query: str,
     driver: WebDriver,
-    sleep_between_interactions: int = 1,
+    sleep_between_interactions: float = 0.3,
     desired_count: int = 100,
 ) -> Set(str):
     """
@@ -37,6 +37,7 @@ def fetch_google_image_urls(
 
     image_links = set()
     results_start = 0
+    start = time.time()
     while True:  # browse and download until we hit our target image count
         scroll_to_end(driver)
 
@@ -83,3 +84,4 @@ def fetch_google_image_urls(
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
+    print(f"image links gathered by scraper in {int(time.time() - start)} seconds")
