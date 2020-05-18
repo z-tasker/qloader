@@ -16,10 +16,10 @@ RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geck
   rm -rf /opt/geckodriver && \
   tar -C /opt -zxf /tmp/geckodriver.tar.gz && \
   rm /tmp/geckodriver.tar.gz && \
-  mv /opt/geckodriver /opt/geckodriver-$GECKODRIVER_VERSION && \
-  chmod 755 /opt/geckodriver-$GECKODRIVER_VERSION && \
-  ln -fs /opt/geckodriver-$GECKODRIVER_VERSION /usr/bin/geckodriver && \
-  ln -fs /opt/geckodriver-$GECKODRIVER_VERSION /usr/bin/wires
+  mv /opt/geckodriver /usr/local/bin/geckodriver-$GECKODRIVER_VERSION && \
+  chmod 755 /usr/local/bin/geckodriver-$GECKODRIVER_VERSION && \
+  ln -fs /usr/local/bin/geckodriver-$GECKODRIVER_VERSION /usr/local/bin/geckodriver && \
+  ln -fs /usr/local/bin/geckodriver-$GECKODRIVER_VERSION /usr/local/bin/wires
 
 # Chrome Driver
 ENV CHROMEDRIVER_VERSION 2.41

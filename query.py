@@ -100,7 +100,7 @@ def get_google_images(
     """
     store.mkdir(parents=True, exist_ok=True)
     errors = defaultdict(int)
-    with getattr(webdriver, BROWSER)(options=OPTIONS) as driver:
+    with getattr(webdriver, BROWSER)(options=OPTIONS, log_path=Path(__file__).parent.joinpath("/tmp/driver.log")) as driver:
         wait = WebDriverWait(driver, 10)
         i = 0
         for image_url in fetch_google_image_urls(
