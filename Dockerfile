@@ -5,8 +5,8 @@ RUN echo "deb http://deb.debian.org/debian/ unstable main contrib non-free" >> /
     apt update && \
     apt install -y firefox
 
-RUN apt install -y wget unzip
- 
+RUN apt-get install -y wget unzip gnupg
+
 RUN wget -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
   apt install -y /tmp/chrome.deb
 
@@ -27,11 +27,20 @@ RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/2.
   unzip /tmp/chromedriver.zip -d /tmp/ && \
   mv /tmp/chromedriver /usr/local/bin
 
-RUN apt install -y python3.8 python3-pip
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 
-RUN mkdir /qload 
-ADD requirements.txt /qload/
-RUN pip3 install -r /qload/requirements.txt
+RUN apt-get -y update && \ 
+  apt-get install -y python3.8 python3-pip --fix-missing
+
+RUN mkdir -p /etc/sudoers.d && \  
+  addgroup --gid 1000 admin && \
+  adduser --disabled-password --gecos "" --uid 1000 --gid 1000 admin && \
+  echo "admin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/admin && chmod 400 /etc/sudoers.d/admin
+
+USER admin
+
+ADD requirements.txt /home/admin/
+RUN pip3 install -r /home/admin/requirements.txt
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
@@ -41,5 +50,5 @@ RUN firefox --version
 RUN pip3 list selenium
 RUN geckodriver --version
 RUN chromedriver --version
-ADD browserdriver.py query.py /qload/
-ENTRYPOINT ["/qload/query.py"]
+ADD browserdriver.py query.py /home/admin/
+ENTRYPOINT ["/home/admin/query.py"]

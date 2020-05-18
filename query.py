@@ -106,7 +106,7 @@ def get_google_images(
         for image_url in fetch_google_image_urls(
             query=query_terms,
             driver=driver,
-            sleep_between_interactions=1,
+            sleep_between_interactions=0.3,
             desired_count=max_images,
         ):
             image_id = uuid4().hex

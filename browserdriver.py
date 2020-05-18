@@ -18,7 +18,7 @@ def fetch_google_image_urls(
     desired_count: int = 100,
 ) -> Set(str):
     """
-        yield google image urls until desired_count is reached
+        Accumulate a set of google image urls until desired_count is reached
         The find_elements_by_css_selector approach for interacting with the page feels a little bit brittle, it's possible these values could change.
     """
 
