@@ -92,6 +92,17 @@ class ManifestDocument(UserDict):
     pass
 
 
+def get_url_headers(image_url: str) -> Dict[str, Any]:
+
+    url_headers = requests.head(image_url).headers
+
+    return {
+        header_key.replace("-", "_"): url_headers[header_key]
+        for header_key in ["last-modified", "content-type", "content-length", "server"]
+        if header_key in url_headers
+    }
+
+
 def get_google_images(
     query_terms: str, store: Path, max_images: int
 ) -> Generator[ManifestDocument, None, None]:
@@ -100,7 +111,10 @@ def get_google_images(
     """
     store.mkdir(parents=True, exist_ok=True)
     errors = defaultdict(int)
-    with getattr(webdriver, BROWSER)(options=OPTIONS, service_log_path=Path(__file__).parent.joinpath("/tmp/driver.log")) as driver:
+    with getattr(webdriver, BROWSER)(
+        options=OPTIONS,
+        service_log_path=Path(__file__).parent.joinpath("/tmp/driver.log"),
+    ) as driver:
         wait = WebDriverWait(driver, 10)
         i = 0
         for image_url in fetch_google_image_urls(
@@ -119,6 +133,7 @@ def get_google_images(
                         "query": query_terms,
                         "image_id": image_id,
                         "image_url": image_url,
+                        "headers": get_url_headers(image_url),
                     }
                 )
             except Exception as e:
