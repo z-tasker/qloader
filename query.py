@@ -96,11 +96,22 @@ def get_url_headers(image_url: str) -> Dict[str, Any]:
 
     url_headers = requests.head(image_url).headers
 
-    return {
+    headers = {
         header_key.replace("-", "_"): url_headers[header_key]
         for header_key in ["last-modified", "content-type", "content-length", "server"]
         if header_key in url_headers
     }
+
+    if "last_modified" in headers:
+        # turn last_modified date into ms since epoch
+        headers["last_modified"] = int(
+            datetime.strptime(
+                headers["last_modified"], "%a, %d %b %Y %H:%M:%S %Z"
+            ).timestamp()
+            * 1000
+        )
+
+    return headers
 
 
 def get_google_images(
