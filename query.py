@@ -14,6 +14,7 @@ from uuid import uuid4
 from urllib.parse import urlparse
 
 import boto3
+import imagehash
 import requests
 from PIL import Image, UnidentifiedImageError
 
@@ -26,7 +27,7 @@ from browserdriver import fetch_google_image_urls
 
 """
 
-This program gathers search engine results by running a query against some endpoint. 
+This program gathers search engine results by running a query against some endpoint.
 Metadata about the queries (host IP geolocation information, query context) are used to tag results.
 
 The first search engine implemented here is google_images. Image files are downloaded by a selenium webdriver.
@@ -70,25 +71,48 @@ def get_s3_client() -> botocore.client.s3:
     )
 
 
-def persist_image(folder: Path, image_id: str, url: str) -> None:
+def hash_image(image: Image) -> str:
+    """
+    """
+    hash_tuple = (
+        imagehash.colorhash(image),
+        imagehash.average_hash(image)
+    )
+    name = ""
+    for hash_component in hash_tuple:
+        for char in hash_component.hash.flatten():
+            if char:
+                name += "0"
+            else:
+                name += "I"
+
+    return name
+
+
+def persist_image(folder: Path, url: str, compress_dimensions: Optional[Tuple[int, int]]) -> None:
     """
         Write image to disk
     """
     folder.mkdir(exist_ok=True, parents=True)
     image_content = requests.get(url, timeout=30).content
     image = Image.open(io.BytesIO(image_content)).convert("RGB")
+    image_id = hash_image(image)
     image_file = folder.joinpath(image_id + ".jpg")
     with open(image_file, "w") as f:
-        image.resize((300, 300), Image.ANTIALIAS).save(
-            f, "JPEG", optimize=True, quality=85
-        )
+
+        if compress_dimensions is not None:
+            image.resize(compress_dimensions, Image.ANTIALIAS)
+
+        image.save(
+                f, "JPEG", optimize=True, quality=85
+            )
+    return image_id
 
 
 class ManifestDocument(UserDict):
     """
         This placeholder class is where we could formalize a data structure for the output
     """
-
     pass
 
 
@@ -115,7 +139,7 @@ def get_url_headers(image_url: str) -> Dict[str, Any]:
 
 
 def get_google_images(
-    query_terms: str, store: Path, max_images: int
+    query_terms: str, store: Path, max_images: int, compress_dimensions: Optional[Tuple[int, int]]
 ) -> Generator[ManifestDocument, None, None]:
     """
         Save images to disk and yield a ManifestDocument for each image
@@ -134,9 +158,8 @@ def get_google_images(
             sleep_between_interactions=0.3,
             desired_count=max_images,
         ):
-            image_id = uuid4().hex
             try:
-                persist_image(store, image_id, image_url)
+                image_id = persist_image(store, image_url, compress_dimensions)
                 i += 1
                 print(f"{i}: saved {image_url}")
                 yield ManifestDocument(
@@ -173,6 +196,7 @@ def main(
     output_path: Path,
     metadata_path: Path,
     max_images: int,
+    compress_dimensions: Optional[Tuple[int, int]],
     upload_to_s3: bool = True,
 ) -> None:
     output_path = (
@@ -195,7 +219,7 @@ def main(
     metadata.update({"ran_at": ran_at})
     documents = []
     try:
-        for doc in globals()[f"get_{endpoint}"](query_terms, store, max_images):
+        for doc in globals()[f"get_{endpoint}"](query_terms, store, max_images, compress_dimensions):
             doc.update(metadata)
             documents.append(doc)
     except KeyError as e:
@@ -259,6 +283,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Skip S3 upload step for local-only analysis",
     )
+    parser.add_argument(
+        "--no-compress",
+        action="store_false",
+        help="upload the raw image, not compressed to (300, 300)"
+    )
     args = parser.parse_args()
     main(
         trial_id=args.trial_id,
@@ -270,4 +299,5 @@ if __name__ == "__main__":
         metadata_path=Path(args.metadata_path),
         max_images=args.max_images,
         upload_to_s3=not args.skip_upload,
+        compress_dimensions=None if args.no_compress else (300, 300),
     )
