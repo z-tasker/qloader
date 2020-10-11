@@ -1,6 +1,7 @@
 from __future__ import annotations
 import random
 import time
+import selenium
 from selenium import webdriver
 
 
@@ -14,7 +15,7 @@ def random_sleep(min_time: float) -> None:
 def fetch_google_image_urls(
     query: str,
     driver: WebDriver,
-    sleep_between_interactions: float = 0.3,
+    sleep_between_interactions: float = 0.5,
     desired_count: int = 100,
 ) -> Set(str):
     """
@@ -71,9 +72,22 @@ def fetch_google_image_urls(
         else:
             print(f"Found: {len(image_links)} image links, looking for more ...")
             random_sleep(sleep_between_interactions * 2)
+            try:
+                see_more_anyway_button = driver.find_element_by_css_selector(".r0zKGf")
+            except selenium.common.exceptions.NoSuchElementException:
+                see_more_anyway_button = None
             load_more_button = driver.find_element_by_css_selector(".mye4qd")
-            if load_more_button:
+            if see_more_anyway_button:
+                # prefer the see more anyway button
+                try:
+                    driver.execute_script("document.querySelector('.r0zKGf').click();")
+                    print("clicked See More Anyway")
+                    random_sleep(sleep_between_interactions)
+                except selenium.common.exceptions.NoSuchElementException:
+                    pass
+            elif load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
+                print("clicked more results")
                 random_sleep(sleep_between_interactions)
             else:
                 print(driver.page_source)
