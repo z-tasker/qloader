@@ -4,6 +4,7 @@ import argparse
 import base64
 import io
 import os
+import hashlib
 import json
 import time
 import traceback
@@ -71,7 +72,7 @@ def get_s3_client() -> botocore.client.s3:
     )
 
 
-def hash_image(image: Image) -> str:
+def hash_image(image: Image, image_url: str) -> str:
     """
     """
     hash_tuple = (
@@ -86,7 +87,8 @@ def hash_image(image: Image) -> str:
             else:
                 name += "I"
 
-    return name
+    url_hash = hashlib.md5(image_url.encode("utf-8")).hexdigest()
+    return "-".join([url_hash, name])
 
 
 def persist_image(folder: Path, url: str, compress_dimensions: Optional[Tuple[int, int]]) -> None:
@@ -96,7 +98,7 @@ def persist_image(folder: Path, url: str, compress_dimensions: Optional[Tuple[in
     folder.mkdir(exist_ok=True, parents=True)
     image_content = requests.get(url, timeout=30).content
     image = Image.open(io.BytesIO(image_content)).convert("RGB")
-    image_id = hash_image(image)
+    image_id = hash_image(image, url)
     image_file = folder.joinpath(image_id + ".jpg")
     with open(image_file, "w") as f:
 

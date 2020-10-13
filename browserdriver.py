@@ -72,11 +72,21 @@ def fetch_google_image_urls(
         else:
             print(f"Found: {len(image_links)} image links, looking for more ...")
             random_sleep(sleep_between_interactions * 2)
+
+            # scroll to the bottom of the page
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+            # look for the More Results or Load More Anyway button, preferring the latter as it is conditional
             try:
                 see_more_anyway_button = driver.find_element_by_css_selector(".r0zKGf")
             except selenium.common.exceptions.NoSuchElementException:
                 see_more_anyway_button = None
-            load_more_button = driver.find_element_by_css_selector(".mye4qd")
+
+            try:
+                load_more_button = driver.find_element_by_css_selector(".mye4qd")
+            except selenium.common.exceptions.NoSuchElementException:
+                load_more_button = None
+
             if see_more_anyway_button:
                 # prefer the see more anyway button
                 try:
@@ -87,7 +97,7 @@ def fetch_google_image_urls(
                     pass
             elif load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
-                print("clicked more results")
+                print("clicked More Results")
                 random_sleep(sleep_between_interactions)
             else:
                 print(driver.page_source)
@@ -95,6 +105,7 @@ def fetch_google_image_urls(
                     f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, returning what we have so far"
                 )
                 return image_links
+
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
