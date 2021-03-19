@@ -9,7 +9,7 @@ python = "^3.7"
 selenium = "^3.141.0"
 requests = "^2.23.0"
 boto3 = "^1.12.5"
-pillow = "^7.1.1"
+pillow = "^8.1.1"
 imagehash = "^4.1.0"
 
 [tool.poetry.dev-dependencies]
