@@ -87,8 +87,7 @@ def hash_image(image: Image, image_url: str) -> str:
             else:
                 name += "I"
 
-    url_hash = hashlib.md5(image_url.encode("utf-8")).hexdigest()
-    return "-".join([url_hash, name])
+    return hashlib.md5((image_url + name).encode("utf-8")).hexdigest()
 
 
 def persist_image(folder: Path, url: str, compress_dimensions: Optional[Tuple[int, int]]) -> None:

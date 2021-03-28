@@ -73,8 +73,7 @@ def fetch_google_image_urls(
             print(f"Found: {len(image_links)} image links, looking for more ...")
             random_sleep(sleep_between_interactions * 2)
 
-            # scroll to the bottom of the page
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            scroll_to_end(driver)
 
             # look for the More Results or Load More Anyway button, preferring the latter as it is conditional
             try:
@@ -98,7 +97,7 @@ def fetch_google_image_urls(
             elif load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
                 print("clicked More Results")
-                random_sleep(sleep_between_interactions)
+                random_sleep(sleep_between_interactions * 10)
             else:
                 print(driver.page_source)
                 print(
