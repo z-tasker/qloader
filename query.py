@@ -75,10 +75,7 @@ def get_s3_client() -> botocore.client.s3:
 def hash_image(image: Image, image_url: str) -> str:
     """
     """
-    hash_tuple = (
-        imagehash.colorhash(image),
-        imagehash.average_hash(image)
-    )
+    hash_tuple = (imagehash.colorhash(image), imagehash.average_hash(image))
     name = ""
     for hash_component in hash_tuple:
         for char in hash_component.hash.flatten():
@@ -90,7 +87,9 @@ def hash_image(image: Image, image_url: str) -> str:
     return hashlib.md5((image_url + name).encode("utf-8")).hexdigest()
 
 
-def persist_image(folder: Path, url: str, compress_dimensions: Optional[Tuple[int, int]]) -> None:
+def persist_image(
+    folder: Path, url: str, compress_dimensions: Optional[Tuple[int, int]]
+) -> None:
     """
         Write image to disk
     """
@@ -104,9 +103,7 @@ def persist_image(folder: Path, url: str, compress_dimensions: Optional[Tuple[in
         if compress_dimensions is not None:
             image.resize(compress_dimensions, Image.ANTIALIAS)
 
-        image.save(
-                f, "JPEG", optimize=True, quality=85
-            )
+        image.save(f, "JPEG", optimize=True, quality=85)
     return image_id
 
 
@@ -114,6 +111,7 @@ class ManifestDocument(UserDict):
     """
         This placeholder class is where we could formalize a data structure for the output
     """
+
     pass
 
 
@@ -140,7 +138,11 @@ def get_url_headers(image_url: str) -> Dict[str, Any]:
 
 
 def get_google_images(
-    query_terms: str, store: Path, max_images: int, compress_dimensions: Optional[Tuple[int, int]]
+    query_terms: str,
+    store: Path,
+    max_images: int,
+    compress_dimensions: Optional[Tuple[int, int]],
+    language: str,
 ) -> Generator[ManifestDocument, None, None]:
     """
         Save images to disk and yield a ManifestDocument for each image
@@ -158,6 +160,7 @@ def get_google_images(
             driver=driver,
             sleep_between_interactions=0.3,
             desired_count=max_images,
+            language=language,
         ):
             try:
                 image_id = persist_image(store, image_url, compress_dimensions)
@@ -199,6 +202,7 @@ def main(
     max_images: int,
     compress_dimensions: Optional[Tuple[int, int]],
     upload_to_s3: bool = True,
+    language: str = "en",
 ) -> None:
     output_path = (
         output_path.joinpath(trial_id).joinpath(hostname).joinpath(ran_at)
@@ -220,7 +224,9 @@ def main(
     metadata.update({"ran_at": ran_at})
     documents = []
     try:
-        for doc in globals()[f"get_{endpoint}"](query_terms, store, max_images, compress_dimensions):
+        for doc in globals()[f"get_{endpoint}"](
+            query_terms, store, max_images, compress_dimensions, language
+        ):
             doc.update(metadata)
             documents.append(doc)
     except KeyError as e:
@@ -287,7 +293,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--no-compress",
         action="store_false",
-        help="upload the raw image, not compressed to (300, 300)"
+        help="upload the raw image, not compressed to (300, 300)",
+    )
+    parser.add_argument(
+        "--language",
+        type=str,
+        default="en",
+        help="add lr=lang_{language} query param to help content be in the target language",
     )
     args = parser.parse_args()
     main(
@@ -301,4 +313,5 @@ if __name__ == "__main__":
         max_images=args.max_images,
         upload_to_s3=not args.skip_upload,
         compress_dimensions=None if args.no_compress else (300, 300),
+        language=args.language,
     )

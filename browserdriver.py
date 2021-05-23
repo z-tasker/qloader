@@ -17,6 +17,7 @@ def fetch_google_image_urls(
     driver: WebDriver,
     sleep_between_interactions: float = 0.5,
     desired_count: int = 100,
+    language: str = "en",
 ) -> Set(str):
     """
         Accumulate a set of google image urls until desired_count is reached
@@ -30,7 +31,7 @@ def fetch_google_image_urls(
         random_sleep(sleep_between_interactions)
 
     # build the google query
-    search_url = f"https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={query}&oq={query}&gs_l=img"
+    search_url = f"https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={query}&oq={query}&gs_l=img&lr=lang_{language}"
 
     # load the page
     driver.get(search_url)
@@ -104,7 +105,6 @@ def fetch_google_image_urls(
                     f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, returning what we have so far"
                 )
                 return image_links
-
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
