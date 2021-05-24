@@ -50,5 +50,3 @@ RUN firefox --version
 RUN pip3 list selenium
 RUN geckodriver --version
 RUN chromedriver --version
-ADD browserdriver.py query.py /home/admin/
-ENTRYPOINT ["/home/admin/query.py"]

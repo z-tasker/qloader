@@ -3,6 +3,22 @@ import random
 import time
 import selenium
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+
+
+def get_browser_options(browser: str) -> Any:
+    try:
+        options = {"Firefox": FirefoxOptions(), "Chrome": ChromeOptions()}[browser]
+    except KeyError:
+        raise ValueError(f"Unknown browser '{browser}'")
+
+    options.add_argument("--headless")
+
+    if browser == "Chrome":
+        options.add_argument("--no-sandbox")
+
+    return options
 
 
 def random_sleep(min_time: float) -> None:
