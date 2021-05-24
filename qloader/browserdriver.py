@@ -1,6 +1,8 @@
 from __future__ import annotations
+import logging
 import random
 import time
+
 import selenium
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
