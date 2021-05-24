@@ -2,14 +2,14 @@
 import tempfile
 from pathlib import Path
 
-from qloader.query import run
+import qloader
 
 def test_google_images_query() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
     max_items = 100
 
-    images_metadata = query(
+    images_metadata = qloader.query.run(
         endpoint="google-images",
         query_terms="cute dog",
         output_path=output_path,
