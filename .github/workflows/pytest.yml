@@ -1,0 +1,43 @@
+name: Test
+on:
+  pull_request:
+  push: 
+
+jobs:
+  test:
+    environment: ci
+    name: Run test suite
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - uses: Gr1N/setup-poetry@v4
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+    
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    - name: Run full pytest coverage 
+      run: |
+        poetry run pytest --cov=qloader
+
+    - name: Build python wheel
+      run: |
+        poetry build
+
+    - name: Save build artifacts on action
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheel
+        path: ./dist/qloader-*-py3-none-any.whl
