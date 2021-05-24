@@ -63,7 +63,7 @@ def fetch_google_image_urls(
         thumbnail_results = driver.find_elements_by_css_selector("img.Q4LuWd")
         number_results = len(thumbnail_results)
 
-        print(
+        logging.debug(
             f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}"
         )
 
@@ -87,7 +87,7 @@ def fetch_google_image_urls(
                         return image_links
 
         else:
-            print(f"Found: {len(image_links)} image links, looking for more ...")
+            logging.debug(f"Found: {len(image_links)} image links, looking for more ...")
             random_sleep(sleep_between_interactions * 2)
 
             scroll_to_end(driver)
@@ -107,21 +107,21 @@ def fetch_google_image_urls(
                 # prefer the see more anyway button
                 try:
                     driver.execute_script("document.querySelector('.r0zKGf').click();")
-                    print("clicked See More Anyway")
+                    logging.debug("clicked See More Anyway")
                     random_sleep(sleep_between_interactions)
                 except selenium.common.exceptions.NoSuchElementException:
                     pass
             elif load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
-                print("clicked More Results")
+                logging.debug("clicked More Results")
                 random_sleep(sleep_between_interactions * 10)
             else:
-                print(driver.page_source)
-                print(
+                logging.debug(driver.page_source)
+                logging.debug(
                     f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, returning what we have so far"
                 )
                 return image_links
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
-    print(f"image links gathered by scraper in {int(time.time() - start)} seconds")
+    logging.info(f"image links gathered by scraper in {int(time.time() - start)} seconds")

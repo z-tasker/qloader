@@ -13,6 +13,7 @@ import os
 import hashlib
 import json
 import traceback
+import logging
 from collections import defaultdict, UserDict
 from datetime import datetime
 from pathlib import Path
@@ -117,7 +118,7 @@ def get_google_images(
             try:
                 image_id = persist_image(store, image_url)
                 i += 1
-                print(f"{i}: saved {image_url}")
+                logging.debug(f"{i}: saved {image_url}")
                 yield ManifestDocument(
                     {
                         "query": query_terms,
@@ -132,9 +133,9 @@ def get_google_images(
                 errors[str(type(e))] += 1
 
     total_errors = sum(errors.values())
-    print(f"retrieved {i} images from google images with {total_errors} errors")
+    logging.debug(f"retrieved {i} images from google images with {total_errors} errors")
     if total_errors > 0:
-        print(json.dumps(errors, indent=2))
+        logging.debug(json.dumps(errors, indent=2))
 
 
 class UnimplementedEndpointError(Exception):
@@ -164,7 +165,7 @@ def run(
     if metadata_path is not None and Path(metadata_path).is_file():
         metadata = json.loads(Path(metadata_path).read_text())
     else:
-        print(
+        logging.debug(
             f"WARNING: no metadata file found {metadata_path}. No host-level metadata will be included with results"
         )
         metadata = dict()
@@ -188,7 +189,7 @@ def run(
     if manifest_file is not None:
         Path(manifest_file).write_text(json.dumps([dict(d) for d in documents], indent=2,))
 
-    print(
+    logging.info(
         f'"{query_terms}" completed query against {endpoint}, images gathered here: {output_path}.'
     )
     return documents
