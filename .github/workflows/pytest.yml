@@ -38,7 +38,7 @@ jobs:
 
     - name: Set package version
       run: |
-        echo """package_version=$(poetry run python -c \"from importlib import metadata; print(metadata.version('qloader'))\")""" >> $GITHUB_ENV
+        echo """package_version=$(poetry run python -c "from importlib import metadata; print(metadata.version('qloader'))")""" >> $GITHUB_ENV
 
     - name: Save build artifacts on action
       uses: actions/upload-artifact@v2
