@@ -149,8 +149,8 @@ def run(
     endpoint: str,
     query_terms: str,
     output_path: Path,
-    metadata_path: Union[Path, str],
     max_items: int,
+    metadata_path: Optional[Union[Path, str]] = None,
     language: str = "en",
     browser: str = "Firefox",
     manifest_file: Optional[Union[str, Path]] = None
