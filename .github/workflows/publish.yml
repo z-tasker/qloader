@@ -7,7 +7,7 @@ on:
 jobs:
   publish:
     environment: ci
-    name: Publish to Github
+    name: Publish to PYPI
     runs-on: ubuntu-latest
 
     steps:
