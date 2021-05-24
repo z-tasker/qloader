@@ -1,1 +1,1 @@
-from query import run
+from .query import run

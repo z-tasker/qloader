@@ -9,7 +9,7 @@ def test_google_images_query() -> None:
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
     max_items = 100
 
-    images_metadata = qloader.query.run(
+    images_metadata = qloader.run(
         endpoint="google-images",
         query_terms="cute dog",
         output_path=output_path,
