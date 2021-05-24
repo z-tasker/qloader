@@ -31,3 +31,19 @@ jobs:
     - name: Run full pytest coverage 
       run: |
         poetry run pytest --cov=qloader
+
+    - name: Build python wheel
+      run: |
+        poetry build
+
+    - name: Set package version
+      run: echo ::set-env name=PACKAGE_VERSION::$(poetry run python -c "from importlib import metadata; print(metadata.version('qloader'))")
+      id: package-version
+
+    - name: Get color
+      run: echo "The selected color is ${{ steps.package_version.outputs.PACKAGE_VERSION }}"
+
+    - uses: actions/upload-artifacts@v2
+      with:
+        name: wheel
+        path: ./dist/qloader-${{ steps.package_version.outputs.PACKAGE_VERSION }}-py3-none-any.whl
