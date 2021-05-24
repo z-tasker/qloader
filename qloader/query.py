@@ -145,7 +145,7 @@ class NoDocumentsReturnedError(Exception):
     pass
 
 
-def query(
+def run(
     endpoint: str,
     query_terms: str,
     output_path: Path,

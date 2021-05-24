@@ -2,7 +2,7 @@
 import tempfile
 from pathlib import Path
 
-from qloader.query import query
+from qloader.query import run
 
 def test_google_images_query() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
