@@ -7,5 +7,5 @@ qloader runs a query and tags results with metadata.
 
 download non-python dependencies:
 
-to use Firefox you must have `geckodriver` installed
-to use Chrome you must have `chromedriver` installed
+to use Firefox you must have `geckodriver` installed and available in your PATH
+to use Chrome you must have `chromedriver` installed and available in your PATH

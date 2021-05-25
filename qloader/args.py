@@ -5,6 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
+
 class EnvDefault(argparse.Action):
     """
         An argparse action class that auto-sets missing default values from env vars. 
@@ -50,25 +51,25 @@ def get_parser() -> argparse.ArgumentParser:
         help="JSON file with metadata to associate with query results",
     )
     parser.add_argument(
-        "--output-path", 
+        "--output-path",
         type=Path,
         action=env_default("QLOADER_OUTPUT_PATH"),
-        default=Path(tempfile.TemporaryDirectory().name), 
+        default=Path(tempfile.TemporaryDirectory().name),
         help="Where to store results locally",
     )
     parser.add_argument(
-        "--query-terms", 
+        "--query-terms",
         type=str,
         action=env_default("QLOADER_QUERY_TERMS"),
-        required=True, 
-        help="Input into whatever endpoint is being searched"
+        required=True,
+        help="Input into whatever endpoint is being searched",
     )
     parser.add_argument(
-        "--max-items", 
-        type=int, 
+        "--max-items",
+        type=int,
         action=env_default("QLOADER_MAX_ITEMS"),
-        default=100, 
-        help="Max number of items to retrieve from endpoint"
+        default=100,
+        help="Max number of items to retrieve from endpoint",
     )
     parser.add_argument(
         "--language",
@@ -82,7 +83,7 @@ def get_parser() -> argparse.ArgumentParser:
         type=str,
         action=env_default("QLOADER_BROWSER"),
         default="Firefox",
-        help="Browser to use for webdriver, if needed"
+        help="Browser to use for webdriver, if needed",
     )
 
     return parser

@@ -28,6 +28,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from .args import get_parser
 from .browserdriver import fetch_google_image_urls, get_browser_options
 
+
 def hash_image(image: Image, image_url: str) -> str:
     """
     """
@@ -43,9 +44,7 @@ def hash_image(image: Image, image_url: str) -> str:
     return hashlib.md5((image_url + name).encode("utf-8")).hexdigest()
 
 
-def persist_image(
-    folder: Path, url: str
-) -> None:
+def persist_image(folder: Path, url: str) -> None:
     """
         Write image to disk
     """
@@ -90,11 +89,7 @@ def get_url_headers(image_url: str) -> Dict[str, Any]:
 
 
 def get_google_images(
-    query_terms: str,
-    store: Path,
-    max_items: int,
-    language: str,
-    browser: str,
+    query_terms: str, store: Path, max_items: int, language: str, browser: str,
 ) -> Generator[ManifestDocument, None, None]:
     """
         Save images to disk and yield a ManifestDocument for each image
@@ -104,7 +99,7 @@ def get_google_images(
     browser_options = get_browser_options(browser)
     with getattr(webdriver, browser)(
         options=browser_options,
-        service_log_path=Path(__file__).parent.joinpath("/tmp/driver.log"),
+        service_log_path=Path(__file__).parent.joinpath("driver.log"),
     ) as driver:
         wait = WebDriverWait(driver, 10)
         i = 0
@@ -151,10 +146,10 @@ def run(
     query_terms: str,
     output_path: Path,
     max_items: int,
-    metadata_path: Optional[Union[Path, str]] = None,
+    metadata: Optional[Union[Path, str, Dict[str, Any]]] = None,
     language: str = "en",
     browser: str = "Firefox",
-    manifest_file: Optional[Union[str, Path]] = None
+    manifest_file: Optional[Union[str, Path]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path} 
@@ -162,13 +157,14 @@ def run(
     """
     output_path.mkdir(parents=True, exist_ok=True)
 
-    if metadata_path is not None and Path(metadata_path).is_file():
-        metadata = json.loads(Path(metadata_path).read_text())
+    if metadata is not None:
+        if isinstance(metadata, Path) or isinstance(metadata, str):
+            metadata = json.loads(Path(metadata).read_text())
+        elif isinstance(metadata, dict):
+            metadata = metadata
     else:
-        logging.debug(
-            f"WARNING: no metadata file found {metadata_path}. No host-level metadata will be included with results"
-        )
         metadata = dict()
+
     metadata.update({"endpoint": endpoint})
 
     documents = []
@@ -187,7 +183,9 @@ def run(
         raise NoDocumentsReturnedError(f"{endpoint} yielded no documents")
 
     if manifest_file is not None:
-        Path(manifest_file).write_text(json.dumps([dict(d) for d in documents], indent=2,))
+        Path(manifest_file).write_text(
+            json.dumps([dict(d) for d in documents], indent=2,)
+        )
 
     logging.info(
         f'"{query_terms}" completed query against {endpoint}, images gathered here: {output_path}.'

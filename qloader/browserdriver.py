@@ -89,7 +89,9 @@ def fetch_google_image_urls(
                         return image_links
 
         else:
-            logging.debug(f"Found: {len(image_links)} image links, looking for more ...")
+            logging.debug(
+                f"Found: {len(image_links)} image links, looking for more ..."
+            )
             random_sleep(sleep_between_interactions * 2)
 
             scroll_to_end(driver)
@@ -126,4 +128,6 @@ def fetch_google_image_urls(
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
-    logging.info(f"image links gathered by scraper in {int(time.time() - start)} seconds")
+    logging.info(
+        f"image links gathered by scraper in {int(time.time() - start)} seconds"
+    )

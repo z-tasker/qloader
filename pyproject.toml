@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "qloader"
-version = "6.6.0"
+version = "7.0.0"
 description = "Gather results from some search engine"
 authors = ["tasker <tasker@ialcloud.xyz>"]
 

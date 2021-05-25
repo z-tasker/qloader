@@ -1,0 +1,7 @@
+1621903438140	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "-marionette" "--headless" "-foreground" "-no-remote" "-profile" "/var/folders/4m/lkjsk_gs4pb08h8hnyq399380000gn/T/rust_mozprofilelHXPeg"
+*** You are running in headless mode.
+1621903438575	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1621903440363	Marionette	INFO	Listening on port 57827
+1621903440427	Marionette	WARN	TLS certificate errors will be ignored for this session
+1621903515747	Marionette	INFO	Stopped listening on port 57827
