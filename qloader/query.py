@@ -88,8 +88,17 @@ def get_url_headers(image_url: str) -> Dict[str, Any]:
     return headers
 
 
+class UnacceptableErrorRateError(Exception):
+    pass
+
+
 def get_google_images(
-    query_terms: str, store: Path, max_items: int, language: str, browser: str,
+    query_terms: str,
+    store: Path,
+    max_items: int,
+    language: str,
+    browser: str,
+    acceptable_error_rate: float,
 ) -> Generator[ManifestDocument, None, None]:
     """
         Save images to disk and yield a ManifestDocument for each image
@@ -124,13 +133,18 @@ def get_google_images(
                 )
             except Exception as e:
                 # show errors during image gathering for debugging, but accept that some urls will not work.
-                traceback.print_exc()
+                # traceback.print_exc()
                 errors[str(type(e))] += 1
 
     total_errors = sum(errors.values())
     logging.debug(f"retrieved {i} images from google images with {total_errors} errors")
     if total_errors > 0:
         logging.debug(json.dumps(errors, indent=2))
+
+    if (len(errors) / max_items) > acceptable_error_rate:
+        raise UnacceptableErrorRateError(
+            f"{len(errors)}/{max_items} images failed to download!"
+        )
 
 
 class UnimplementedEndpointError(Exception):
@@ -150,6 +164,7 @@ def run(
     language: str = "en",
     browser: str = "Firefox",
     manifest_file: Optional[Union[str, Path]] = None,
+    acceptable_error_rate: float = 0.06,
 ) -> List[Dict[str, Any]]:
     """
     Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path} 
@@ -170,7 +185,12 @@ def run(
     documents = []
     if endpoint == "google-images":
         for doc in get_google_images(
-            query_terms, output_path, max_items, language, browser
+            query_terms,
+            output_path,
+            max_items,
+            language,
+            browser,
+            acceptable_error_rate,
         ):
             doc.update(metadata)
             documents.append(doc)

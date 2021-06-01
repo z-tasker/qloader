@@ -2,4 +2,5 @@ env
 geckodriver.log
 git.sh
 dist
+driver.log
 __pycache__
