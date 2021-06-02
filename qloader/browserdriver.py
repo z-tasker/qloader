@@ -1,5 +1,4 @@
 from __future__ import annotations
-import logging
 import random
 import time
 
@@ -7,6 +6,8 @@ import selenium
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+
+from .logger import get_logger
 
 
 def get_browser_options(browser: str) -> Any:
@@ -42,6 +43,7 @@ def fetch_google_image_urls(
         The find_elements_by_css_selector approach for interacting with the page feels a little bit brittle, it's possible these values could change.
     """
 
+    log = get_logger("fetch_google_image_urls")
     random_sleep(sleep_between_interactions)
 
     def scroll_to_end(driver):
@@ -65,7 +67,7 @@ def fetch_google_image_urls(
         thumbnail_results = driver.find_elements_by_css_selector("img.Q4LuWd")
         number_results = len(thumbnail_results)
 
-        logging.debug(
+        log.debug(
             f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}"
         )
 
@@ -89,9 +91,7 @@ def fetch_google_image_urls(
                         return image_links
 
         else:
-            logging.debug(
-                f"Found: {len(image_links)} image links, looking for more ..."
-            )
+            log.debug(f"Found: {len(image_links)} image links, looking for more ...")
             random_sleep(sleep_between_interactions * 2)
 
             scroll_to_end(driver)
@@ -111,23 +111,21 @@ def fetch_google_image_urls(
                 # prefer the see more anyway button
                 try:
                     driver.execute_script("document.querySelector('.r0zKGf').click();")
-                    logging.debug("clicked See More Anyway")
+                    log.debug("clicked See More Anyway")
                     random_sleep(sleep_between_interactions)
                 except selenium.common.exceptions.NoSuchElementException:
                     pass
             elif load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
-                logging.debug("clicked More Results")
+                log.debug("clicked More Results")
                 random_sleep(sleep_between_interactions * 10)
             else:
-                logging.debug(driver.page_source)
-                logging.debug(
+                log.debug(driver.page_source)
+                log.debug(
                     f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, returning what we have so far"
                 )
                 return image_links
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
-    logging.info(
-        f"image links gathered by scraper in {int(time.time() - start)} seconds"
-    )
+    log.info(f"image links gathered by scraper in {int(time.time() - start)} seconds")

@@ -27,6 +27,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from .args import get_parser
 from .browserdriver import fetch_google_image_urls, get_browser_options
+from .logger import get_logger
 
 
 def hash_image(image: Image, image_url: str) -> str:
@@ -103,6 +104,8 @@ def get_google_images(
     """
         Save images to disk and yield a ManifestDocument for each image
     """
+    log = get_logger("get_google_images")
+
     store.mkdir(parents=True, exist_ok=True)
     errors = defaultdict(int)
     browser_options = get_browser_options(browser)
@@ -122,7 +125,7 @@ def get_google_images(
             try:
                 image_id = persist_image(store, image_url)
                 i += 1
-                logging.debug(f"{i}: saved {image_url}")
+                log.debug(f"{i}: saved {image_url}")
                 yield ManifestDocument(
                     {
                         "query": query_terms,
@@ -137,9 +140,9 @@ def get_google_images(
                 errors[str(type(e))] += 1
 
     total_errors = sum(errors.values())
-    logging.debug(f"retrieved {i} images from google images with {total_errors} errors")
+    log.debug(f"retrieved {i} images from google images with {total_errors} errors")
     if total_errors > 0:
-        logging.debug(json.dumps(errors, indent=2))
+        log.debug(json.dumps(errors, indent=2))
 
     if (len(errors) / max_items) > acceptable_error_rate:
         raise UnacceptableErrorRateError(
@@ -171,6 +174,8 @@ def run(
     depending on the endpoint and type of data.
     """
     output_path.mkdir(parents=True, exist_ok=True)
+
+    log = get_logger("run")
 
     if metadata is not None:
         if isinstance(metadata, Path) or isinstance(metadata, str):
@@ -207,7 +212,7 @@ def run(
             json.dumps([dict(d) for d in documents], indent=2,)
         )
 
-    logging.info(
+    log.info(
         f'"{query_terms}" completed query against {endpoint}, images gathered here: {output_path}.'
     )
     return documents
