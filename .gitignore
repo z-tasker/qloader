@@ -4,3 +4,4 @@ git.sh
 dist
 driver.log
 __pycache__
+.*.swp

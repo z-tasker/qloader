@@ -1,7 +1,15 @@
-if [ -z "${1}" ]; then
-  echo "provide docker tag"
-  exit 1
-fi
+REPO="ialcloud"
+VERSION=$(cat "./pyproject.toml" | sed -n 's/^version = "\(.*\)"$/\1 /gp' | xargs)
 
-poetry export -f requirements.txt > requirements.txt
-docker build -t mgraskertheband/qloader:"${1}" .
+echo ""
+echo "Building ${REPO}/qloader:${VERSION}"
+echo ""
+
+poetry export --without-hashes -f requirements.txt > requirements.txt
+poetry build
+docker build --build-arg VERSION=${VERSION} -t ialcloud/qloader:"${VERSION}" .
+
+
+if [ "${1}" == "--push" ]; then
+  docker push ialcloud/qloader:"${VERSION}"
+fi

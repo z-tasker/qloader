@@ -1,4 +1,6 @@
+ARG VERSION
 FROM debian:bullseye
+ARG VERSION
 
 # browsers to run the tests
 RUN echo "deb http://deb.debian.org/debian/ unstable main contrib non-free" >> /etc/apt/sources.list && \ 
@@ -30,7 +32,7 @@ RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/2.
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 
 RUN apt-get -y update && \ 
-  apt-get install -y python3.8 python3-pip --fix-missing
+  apt-get install -y python3 python3-pip --fix-missing
 
 RUN mkdir -p /etc/sudoers.d && \  
   addgroup --gid 1000 admin && \
@@ -50,3 +52,14 @@ RUN firefox --version
 RUN pip3 list selenium
 RUN geckodriver --version
 RUN chromedriver --version
+
+WORKDIR /home/admin/
+
+RUN mkdir ./dist
+ADD dist/qloader-${VERSION}-py3-none-any.whl ./dist/
+
+RUN pip3 install ./dist/qloader-${VERSION}-py3-none-any.whl
+
+ADD bin/google-images-search.py ./
+
+ENTRYPOINT ["python3", "./google-images-search.py"]
