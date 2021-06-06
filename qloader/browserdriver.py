@@ -37,6 +37,7 @@ def fetch_google_image_urls(
     sleep_between_interactions: float = 0.5,
     desired_count: int = 100,
     language: str = "en",
+    extra_query_params: Optional[Dict[str, str]] = None,
 ) -> Set(str):
     """
         Accumulate a set of google image urls until desired_count is reached
@@ -50,8 +51,24 @@ def fetch_google_image_urls(
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         random_sleep(sleep_between_interactions)
 
+    query_params = {
+        "safe": "off",
+        "tbm": "isch",
+        "source": "hp",
+        "q": f'+"{query}"',
+        "oq": f'+"{query}"',
+        "lr": f"lang_{language}",
+    }
+
+    if extra_query_params is not None:
+        query_params.update(extra_query_params)
+
+    query_params_str = "&".join([f"{key}={val}" for key, val in query_params.items()])
+
     # build the google query
-    search_url = f"https://www.google.com/search?safe=off&site=&tbm=isch&source=hp&q={query}&oq={query}&gs_l=img&lr=lang_{language}"
+    search_url = f"https://www.google.com/search?{query_params_str}"
+
+    log.info(f"searching: {search_url}")
 
     # load the page
     driver.get(search_url)

@@ -30,3 +30,24 @@ def test_google_images_query() -> None:
     assert (
         len([p for p in output_path.iterdir()]) / max_items
     ) > 0.95  # assert images are on disk
+
+
+def test_google_images_region_specific_query() -> None:
+    output_path = Path(tempfile.TemporaryDirectory().name)
+    metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
+    max_items = 100
+
+    images_metadata = qloader.run(
+        endpoint="google-images",
+        query_terms="vieux chien",
+        output_path=output_path,
+        metadata=metadata_path,
+        max_items=max_items,
+        language="fr",
+        browser="Chrome",
+        extra_query_params={"cr": "countryFR"},
+    )
+
+    assert (
+        len([p for p in output_path.iterdir()]) / max_items
+    ) > 0.95  # assert images are on disk

@@ -100,6 +100,7 @@ def get_google_images(
     language: str,
     browser: str,
     acceptable_error_rate: float,
+    extra_query_params: Optional[Dict[str, str]] = None,
 ) -> Generator[ManifestDocument, None, None]:
     """
         Save images to disk and yield a ManifestDocument for each image
@@ -121,6 +122,7 @@ def get_google_images(
             sleep_between_interactions=0.3,
             desired_count=max_items,
             language=language,
+            extra_query_params=extra_query_params,
         ):
             try:
                 image_id = persist_image(store, image_url)
@@ -168,6 +170,7 @@ def run(
     browser: str = "Firefox",
     manifest_file: Optional[Union[str, Path]] = None,
     acceptable_error_rate: float = 0.06,
+    extra_query_params: Optional[Dict[str, str]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path} 
@@ -196,6 +199,7 @@ def run(
             language,
             browser,
             acceptable_error_rate,
+            extra_query_params,
         ):
             doc.update(metadata)
             documents.append(doc)
