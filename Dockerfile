@@ -13,7 +13,7 @@ RUN wget -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-sta
   apt install -y /tmp/chrome.deb
 
 # Gecko Driver
-ENV GECKODRIVER_VERSION 0.26.0
+ENV GECKODRIVER_VERSION 0.29.1
 RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v$GECKODRIVER_VERSION/geckodriver-v$GECKODRIVER_VERSION-linux64.tar.gz && \
   rm -rf /opt/geckodriver && \
   tar -C /opt -zxf /tmp/geckodriver.tar.gz && \
@@ -24,8 +24,8 @@ RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geck
   ln -fs /usr/local/bin/geckodriver-$GECKODRIVER_VERSION /usr/local/bin/wires
 
 # Chrome Driver
-ENV CHROMEDRIVER_VERSION 2.41
-RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/2.41/chromedriver_linux64.zip && \
+ENV CHROMEDRIVER_VERSION 91.0.4472.19 
+RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
   unzip /tmp/chromedriver.zip -d /tmp/ && \
   mv /tmp/chromedriver /usr/local/bin
 
