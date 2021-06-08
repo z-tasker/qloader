@@ -1,6 +1,8 @@
 from __future__ import annotations
 import random
 import time
+import hashlib
+from collections import defaultdict
 
 import selenium
 from selenium import webdriver
@@ -31,17 +33,35 @@ def random_sleep(min_time: float) -> None:
     time.sleep(min_time + min_time * random.random())
 
 
+def pick_best_actual_image(actual_images: List[WebElement]) -> WebElement:
+    if len(actual_images) == 1:
+        return actual_images[0]
+    else:
+        scores = defaultdict(int)
+        for i, actual_image in enumerate(actual_images):
+            scores[i] += 1
+            if "encrypted-tbn0.gstatic.com" in actual_image.get_attribute("src"):
+                scores[i] -= 1
+        top_scorers = list()
+        for i, score in enumerate(scores):
+            if score == max(scores.values()):
+                top_scorers.append(i)
+
+        return actual_images[random.choice(top_scorers)]
+
+
 def fetch_google_image_urls(
     query: str,
     driver: WebDriver,
     sleep_between_interactions: float = 0.5,
-    desired_count: int = 100,
     language: str = "en",
     extra_query_params: Optional[Dict[str, str]] = None,
-) -> Set(str):
+    track_related: bool = False,
+) -> List(Dict[str, str]):
     """
-        Accumulate a set of google image urls until desired_count is reached
-        The find_elements_by_css_selector approach for interacting with the page feels a little bit brittle, it's possible these values could change.
+        Accumulate a set of image urls.
+        The find_elements_by_css_selector approach for interacting with the page.
+        feels a little bit brittle, it's possible these values could change.
     """
 
     log = get_logger("fetch_google_image_urls")
@@ -74,9 +94,11 @@ def fetch_google_image_urls(
     driver.get(search_url)
     random_sleep(sleep_between_interactions)
 
-    image_links = set()
+    image_links = list()
     results_start = 0
+    results_seen = list()
     start = time.time()
+    breakpoints = 0
     while True:  # browse and download until we hit our target image count
         scroll_to_end(driver)
 
@@ -87,6 +109,10 @@ def fetch_google_image_urls(
         log.debug(
             f"Found: {number_results} search results. Extracting links from {results_start}:{number_results}"
         )
+        if results_start == number_results:
+            breakpoints += 1
+            if breakpoints >= 5:
+                break
 
         for img in thumbnail_results[results_start:number_results]:
             # try to click every thumbnail such that we can get the real image behind it
@@ -97,15 +123,41 @@ def fetch_google_image_urls(
                 continue
 
             # extract image urls
-            actual_images = driver.find_elements_by_css_selector("img.n3VNCb")
-            for actual_image in actual_images:
-                if actual_image.get_attribute(
-                    "src"
-                ) and "http" in actual_image.get_attribute("src"):
-                    image_links.add(actual_image.get_attribute("src"))
-                    if len(image_links) >= desired_count:
-                        # We're done
-                        return image_links
+            actual_image = pick_best_actual_image(
+                driver.find_elements_by_css_selector("img.n3VNCb")
+            )
+            image_link = dict()
+            if actual_image.get_attribute(
+                "src"
+            ) and "http" in actual_image.get_attribute("src"):
+                image_link.update({"src": actual_image.get_attribute("src")})
+                image_link.update({"alt": actual_image.get_attribute("alt")})
+
+            else:
+                continue
+
+            if track_related:
+                related_images = list()
+                for related_section in driver.find_elements_by_css_selector(
+                    "div.EVPn8e"
+                ):
+                    for related_image in related_section.find_elements_by_tag_name(
+                        "img"
+                    ):
+                        related_images.append(
+                            {
+                                "src": related_image.get_attribute("src"),
+                                "alt": related_image.get_attribute("alt"),
+                            }
+                        )
+                image_link["related_images"] = related_images
+
+            result_id = hashlib.md5(
+                f"{image_link['alt']}{image_link['src']}".encode("utf-8")
+            ).hexdigest()
+            if result_id not in results_seen:
+                yield image_link
+                results_seen.append(result_id)
 
         else:
             log.debug(f"Found: {len(image_links)} image links, looking for more ...")
@@ -120,6 +172,7 @@ def fetch_google_image_urls(
                 see_more_anyway_button = None
 
             try:
+                # Show More Results
                 load_more_button = driver.find_element_by_css_selector(".mye4qd")
             except selenium.common.exceptions.NoSuchElementException:
                 load_more_button = None
@@ -138,11 +191,9 @@ def fetch_google_image_urls(
                 random_sleep(sleep_between_interactions * 10)
             else:
                 log.debug(driver.page_source)
-                log.debug(
-                    f"{image_count}/{desired_count} images gathered, but no 'load_more_button' found, returning what we have so far"
-                )
-                return image_links
+                log.info(f"No path for more images found")
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
-    log.info(f"image links gathered by scraper in {int(time.time() - start)} seconds")
+
+    log.info(f"scraped for {int(time.time() - start)} seconds")

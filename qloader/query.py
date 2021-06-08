@@ -50,7 +50,7 @@ def persist_image(folder: Path, url: str) -> None:
         Write image to disk
     """
     folder.mkdir(exist_ok=True, parents=True)
-    image_content = requests.get(url, timeout=30).content
+    image_content = requests.get(url, timeout=5).content
     image = Image.open(io.BytesIO(image_content)).convert("RGB")
     image_id = hash_image(image, url)
     image_file = folder.joinpath(image_id + ".jpg")
@@ -101,6 +101,7 @@ def get_google_images(
     browser: str,
     acceptable_error_rate: float,
     extra_query_params: Optional[Dict[str, str]] = None,
+    track_related: bool = False,
 ) -> Generator[ManifestDocument, None, None]:
     """
         Save images to disk and yield a ManifestDocument for each image
@@ -116,30 +117,64 @@ def get_google_images(
     ) as driver:
         wait = WebDriverWait(driver, 10)
         i = 0
-        for image_url in fetch_google_image_urls(
+        for image_link in fetch_google_image_urls(
             query=query_terms,
             driver=driver,
-            sleep_between_interactions=0.3,
-            desired_count=max_items,
+            sleep_between_interactions=0.2,
             language=language,
             extra_query_params=extra_query_params,
+            track_related=track_related,
         ):
+
+            log.info(
+                f"found '{image_link['alt']}'"
+                + (
+                    f" and {len(image_link['related_images'])} related images"
+                    if track_related
+                    else ""
+                )
+            )
             try:
-                image_id = persist_image(store, image_url)
+                image_id = persist_image(store, image_link["src"])
                 i += 1
-                log.debug(f"{i}: saved {image_url}")
-                yield ManifestDocument(
+                log.debug(f"{i}: saved {image_link['src']}")
+                manifest_document = ManifestDocument(
                     {
                         "query": query_terms,
                         "image_id": image_id,
-                        "image_url": image_url,
-                        "headers": get_url_headers(image_url),
+                        "image_url": image_link["src"],
+                        "headers": get_url_headers(image_link["src"]),
+                        "alt": image_link["alt"],
                     }
                 )
+                if track_related:
+                    related_manifests = list()
+                    for related_image in image_link["related_images"]:
+                        related_image_id = persist_image(
+                            store.joinpath("related"), related_image["src"]
+                        )
+                        related_manifests.append(
+                            ManifestDocument(
+                                {
+                                    "query": query_terms,
+                                    "image_id": related_image_id,
+                                    "image_url": related_image["src"],
+                                    "headers": get_url_headers(related_image["src"]),
+                                    "alt": related_image["alt"],
+                                }
+                            )
+                        )
+
+                    manifest_document.update({"related": related_manifests})
+
+                yield manifest_document
             except Exception as e:
-                # show errors during image gathering for debugging, but accept that some urls will not work.
+                # collect errors during image gathering for debugging, but accept that some urls will not work.
                 # traceback.print_exc()
                 errors[str(type(e))] += 1
+
+            if i >= max_items:
+                break
 
     total_errors = sum(errors.values())
     log.debug(f"retrieved {i} images from google images with {total_errors} errors")
@@ -171,6 +206,7 @@ def run(
     manifest_file: Optional[Union[str, Path]] = None,
     acceptable_error_rate: float = 0.06,
     extra_query_params: Optional[Dict[str, str]] = None,
+    track_related: bool = False,
 ) -> List[Dict[str, Any]]:
     """
     Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path} 
@@ -192,17 +228,20 @@ def run(
 
     documents = []
     if endpoint == "google-images":
-        for doc in get_google_images(
-            query_terms,
-            output_path,
-            max_items,
-            language,
-            browser,
-            acceptable_error_rate,
-            extra_query_params,
+        for i, doc in enumerate(
+            get_google_images(
+                query_terms,
+                output_path,
+                max_items,
+                language,
+                browser,
+                acceptable_error_rate,
+                extra_query_params,
+                track_related,
+            )
         ):
             doc.update(metadata)
-            documents.append(doc)
+            documents.append(doc.data)
     else:
         raise UnimplementedEndpointError(
             f"No get_{endpoint} method could be found in {__file__}"

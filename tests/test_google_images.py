@@ -8,7 +8,7 @@ import qloader
 def test_google_images_query() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
-    max_items = 100
+    max_items = 30
 
     images_metadata = qloader.run(
         endpoint="google-images",
@@ -35,7 +35,7 @@ def test_google_images_query() -> None:
 def test_google_images_region_specific_query() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
-    max_items = 100
+    max_items = 20
 
     images_metadata = qloader.run(
         endpoint="google-images",
@@ -51,3 +51,21 @@ def test_google_images_region_specific_query() -> None:
     assert (
         len([p for p in output_path.iterdir()]) / max_items
     ) > 0.95  # assert images are on disk
+
+
+def test_google_images_track_related() -> None:
+    output_path = Path(tempfile.TemporaryDirectory().name)
+    metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
+    max_items = 5
+
+    images_metadata = qloader.run(
+        endpoint="google-images",
+        query_terms="poodle",
+        output_path=output_path,
+        metadata=metadata_path,
+        max_items=max_items,
+        language="en",
+        browser="Chrome",
+        extra_query_params={"cr": "countryCA"},
+        track_related=True,
+    )
