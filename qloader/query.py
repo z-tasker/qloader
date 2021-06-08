@@ -204,7 +204,7 @@ def run(
     language: str = "en",
     browser: str = "Firefox",
     manifest_file: Optional[Union[str, Path]] = None,
-    acceptable_error_rate: float = 0.06,
+    acceptable_error_rate: float = 0.20,
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
 ) -> List[Dict[str, Any]]:
