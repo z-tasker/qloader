@@ -31,8 +31,19 @@ RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$C
 
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 
+WORKDIR /tmp
+ENV PYTHON_VERSION 3.8.10
+RUN apt -y update && \
+  apt -y install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev && \
+  curl -O https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz && \
+  tar -xf Python-$PYTHON_VERSION.tar.xz && \
+  cd Python-$PYTHON_VERSION && \
+  ./configure --enable-optimizations && \
+  make -j 4 && \
+  make altinstall
+
 RUN apt-get -y update && \ 
-  apt-get install -y python3 python3-pip --fix-missing
+  apt-get install -y python3-pip --fix-missing
 
 RUN mkdir -p /etc/sudoers.d && \  
   addgroup --gid 1000 admin && \

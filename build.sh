@@ -9,7 +9,8 @@ echo "Building ${REPO}/browsers-base:${BROWSERS_BASE_VERSION}"
 echo ""
 
 cd ./base-image && \
-docker build -t ${REPO}/browsers-base:${BROWSERS_BASE_VERSION} .
+docker build -t ${REPO}/browsers-base:${BROWSERS_BASE_VERSION} . &&
+cd - 
 
 if [ "${1}" == "--push" ]; then
   docker push ${REPO}/browsers-base:${BROWSERS_BASE_VERSION}
