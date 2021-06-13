@@ -33,8 +33,14 @@ def random_sleep(min_time: float) -> None:
     time.sleep(min_time + min_time * random.random())
 
 
+class NoImagesInWebElementError(Exception):
+    pass
+
+
 def pick_best_actual_image(actual_images: List[WebElement]) -> WebElement:
-    if len(actual_images) == 1:
+    if len(actual_images) == 0:
+        raise NoImagesInWebElementError()
+    elif len(actual_images) == 1:
         return actual_images[0]
     else:
         scores = defaultdict(int)
@@ -123,9 +129,13 @@ def fetch_google_image_urls(
                 continue
 
             # extract image urls
-            actual_image = pick_best_actual_image(
-                driver.find_elements_by_css_selector("img.n3VNCb")
-            )
+            try:
+                actual_image = pick_best_actual_image(
+                    driver.find_elements_by_css_selector("img.n3VNCb")
+                )
+            except NoImagesInWebElementError as exc:
+                log.debug("skipping empty element")
+                continue
             image_link = dict()
             if actual_image.get_attribute(
                 "src"
