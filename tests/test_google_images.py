@@ -44,7 +44,7 @@ def test_google_images_region_specific_query() -> None:
         metadata=metadata_path,
         max_items=max_items,
         language="fr",
-        browser="Firefox",
+        browser="Chrome",
         extra_query_params={"cr": "countryFR"},
     )
 
@@ -65,8 +65,7 @@ def test_google_images_track_related() -> None:
         metadata=metadata_path,
         max_items=max_items,
         language="en",
-        browser="Firefox",
-        driver_path="/usr/local/bin/geckodriver",
+        browser="Chrome",
         extra_query_params={"cr": "countryCA"},
         track_related=True,
     )
