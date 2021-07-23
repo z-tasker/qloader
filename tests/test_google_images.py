@@ -17,7 +17,7 @@ def test_google_images_query() -> None:
         metadata=metadata_path,
         max_items=max_items,
         language="en",
-        browser="Firefox",
+        browser="Chrome",
     )
 
     assert (len(images_metadata) / max_items) > 0.95  # assert 95% fill rate
@@ -44,7 +44,7 @@ def test_google_images_region_specific_query() -> None:
         metadata=metadata_path,
         max_items=max_items,
         language="fr",
-        browser="Chrome",
+        browser="Firefox",
         extra_query_params={"cr": "countryFR"},
     )
 
@@ -65,7 +65,8 @@ def test_google_images_track_related() -> None:
         metadata=metadata_path,
         max_items=max_items,
         language="en",
-        browser="Chrome",
+        browser="Firefox",
+        driver_path="/usr/local/bin/geckodriver",
         extra_query_params={"cr": "countryCA"},
         track_related=True,
     )

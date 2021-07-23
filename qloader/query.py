@@ -93,6 +93,26 @@ class UnacceptableErrorRateError(Exception):
     pass
 
 
+def get_webdriver(
+    browser: str, browser_options: Dict[str, Any], driver_path: Optional[str] = None,
+) -> WebDriver:
+    log = get_logger(f"get_webdriver.{browser}")
+    if driver_path is not None:
+        log.debug(f"using {driver_path}")
+        driver = getattr(webdriver, browser)(
+            executable_path=driver_path,
+            options=browser_options,
+            service_log_path=Path(__file__).parent.joinpath("driver.log"),
+        )
+    else:
+        driver = getattr(webdriver, browser)(
+            options=browser_options,
+            service_log_path=Path(__file__).parent.joinpath("driver.log"),
+        )
+    log.info(f"context manager initialized")
+    return driver
+
+
 def get_google_images(
     query_terms: str,
     store: Path,
@@ -100,6 +120,7 @@ def get_google_images(
     language: str,
     browser: str,
     acceptable_error_rate: float,
+    driver_path: Optional[str] = None,
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
 ) -> Generator[ManifestDocument, None, None]:
@@ -111,9 +132,8 @@ def get_google_images(
     store.mkdir(parents=True, exist_ok=True)
     errors = defaultdict(int)
     browser_options = get_browser_options(browser)
-    with getattr(webdriver, browser)(
-        options=browser_options,
-        service_log_path=Path(__file__).parent.joinpath("driver.log"),
+    with get_webdriver(
+        browser=browser, browser_options=browser_options, driver_path=driver_path
     ) as driver:
         wait = WebDriverWait(driver, 10)
         i = 0
@@ -203,6 +223,7 @@ def run(
     metadata: Optional[Union[Path, str, Dict[str, Any]]] = None,
     language: str = "en",
     browser: str = "Firefox",
+    driver_path: Optional[str] = None,
     manifest_file: Optional[Union[str, Path]] = None,
     acceptable_error_rate: float = 0.20,
     extra_query_params: Optional[Dict[str, str]] = None,
@@ -230,14 +251,15 @@ def run(
     if endpoint == "google-images":
         for i, doc in enumerate(
             get_google_images(
-                query_terms,
-                output_path,
-                max_items,
-                language,
-                browser,
-                acceptable_error_rate,
-                extra_query_params,
-                track_related,
+                query_terms=query_terms,
+                store=output_path,
+                max_items=max_items,
+                language=language,
+                browser=browser,
+                acceptable_error_rate=acceptable_error_rate,
+                driver_path=driver_path,
+                extra_query_params=extra_query_params,
+                track_related=track_related,
             )
         ):
             doc.update(metadata)
