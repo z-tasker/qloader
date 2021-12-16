@@ -16,7 +16,7 @@ CONSOLE_TIME_FORMAT = "%s"
 
 def get_logger(
     name: str,
-    console_level: int = int(os.getenv("QLOADER_LOG_LEVEL", logging.DEBUG)),
+    console_level: int = int(os.getenv("QLOADER_LOG_LEVEL", logging.INFO)),
     log_file: Union[str, Path, None] = os.getenv("QLOADER_LOG_FILE", None),
     file_level: int = logging.DEBUG,
 ) -> logging.Logger:
