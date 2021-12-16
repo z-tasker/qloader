@@ -201,9 +201,9 @@ def fetch_google_image_urls(
                 random_sleep(sleep_between_interactions * 10)
             else:
                 log.debug(driver.page_source)
-                log.info(f"No path for more images found")
+                log.warning(f"No path for more images found")
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)
 
-    log.info(f"scraped for {int(time.time() - start)} seconds")
+    log.debug(f"scraped for {int(time.time() - start)} seconds")

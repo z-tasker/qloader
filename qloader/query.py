@@ -109,7 +109,7 @@ def get_webdriver(
             options=browser_options,
             service_log_path=Path(__file__).parent.joinpath("driver.log"),
         )
-    log.info(f"context manager initialized")
+    log.debug(f"context manager initialized")
     return driver
 
 
@@ -146,7 +146,7 @@ def get_google_images(
             track_related=track_related,
         ):
 
-            log.info(
+            log.debug(
                 f"found '{image_link['alt']}'"
                 + (
                     f" and {len(image_link['related_images'])} related images"
@@ -277,7 +277,7 @@ def run(
             json.dumps([dict(d) for d in documents], indent=2,)
         )
 
-    log.info(
+    log.debug(
         f'"{query_terms}" completed query against {endpoint}, images gathered here: {output_path}.'
     )
     return documents
