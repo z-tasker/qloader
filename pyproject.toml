@@ -5,11 +5,11 @@ description = "Gather results from some search engine"
 authors = ["tasker <tasker@ialcloud.xyz>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-selenium = "^3.141.0"
-requests = "^2.23.0"
-pillow = "^8.1.1"
-imagehash = "^4.1.0"
+python = "^3.7,<4.0"
+selenium = "*"
+requests = "*"
+pillow = "*"
+imagehash = "*"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
