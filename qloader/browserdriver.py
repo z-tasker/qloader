@@ -175,29 +175,41 @@ def fetch_google_image_urls(
 
             scroll_to_end(driver)
 
-            # look for the More Results or Load More Anyway button, preferring the latter as it is conditional
+            # look for the More Results or Load More Anyway or Cookie Accept button
             try:
-                see_more_anyway_button = driver.find_element_by_css_selector(".r0zKGf")
+                see_more_anyway_button = driver.find_element(By.CSS_SELECTOR, ".r0zKGf")
             except selenium.common.exceptions.NoSuchElementException:
                 see_more_anyway_button = None
 
             try:
                 # Show More Results
-                load_more_button = driver.find_element_by_css_selector(".mye4qd")
+                load_more_button = driver.find_element(By.CSS_SELECTOR, ".mye4qd")
             except selenium.common.exceptions.NoSuchElementException:
                 load_more_button = None
+
+            try:
+                # Accept cookies
+                accept_cookies_button = driver.find_element(
+                    By.XPATH, "//button[@jsname = 'b3VHJd']"
+                )
+            except selenium.common.exceptions.NoSuchElementException:
+                accept_cookies_button = None
 
             if see_more_anyway_button:
                 # prefer the see more anyway button
                 try:
-                    driver.execute_script("document.querySelector('.r0zKGf').click();")
+                    see_more_anyway_button.click()
                     log.debug("clicked See More Anyway")
                     random_sleep(sleep_between_interactions)
                 except selenium.common.exceptions.NoSuchElementException:
                     pass
             elif load_more_button:
-                driver.execute_script("document.querySelector('.mye4qd').click();")
+                load_bore_button.click()
                 log.debug("clicked More Results")
+                random_sleep(sleep_between_interactions * 10)
+            elif accept_cookies_button:
+                accept_cookies_button.click()
+                log.debug("accepted cookies")
                 random_sleep(sleep_between_interactions * 10)
             else:
                 log.debug(driver.page_source)

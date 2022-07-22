@@ -24,7 +24,7 @@ RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geck
   ln -fs /usr/local/bin/geckodriver-$GECKODRIVER_VERSION /usr/local/bin/wires
 
 # Chrome Driver
-ENV CHROMEDRIVER_VERSION 91.0.4472.19 
+ENV CHROMEDRIVER_VERSION 103.0.5060.134
 RUN wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
   unzip /tmp/chromedriver.zip -d /tmp/ && \
   mv /tmp/chromedriver /usr/local/bin
