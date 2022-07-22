@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import selenium
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 
@@ -109,7 +110,7 @@ def fetch_google_image_urls(
         scroll_to_end(driver)
 
         # get all image thumbnail results
-        thumbnail_results = driver.find_elements_by_css_selector("img.Q4LuWd")
+        thumbnail_results = driver.find_elements(By.CSS_SELECTOR, "img.Q4LuWd")
         number_results = len(thumbnail_results)
 
         log.debug(
@@ -131,7 +132,7 @@ def fetch_google_image_urls(
             # extract image urls
             try:
                 actual_image = pick_best_actual_image(
-                    driver.find_elements_by_css_selector("img.n3VNCb")
+                    driver.find_elements(By.CSS_SELECTOR, "img.n3VNCb")
                 )
             except NoImagesInWebElementError as exc:
                 log.debug("skipping empty element")
@@ -148,7 +149,7 @@ def fetch_google_image_urls(
 
             if track_related:
                 related_images = list()
-                for related_section in driver.find_elements_by_css_selector(
+                for related_section in driver.find_elements(By.CSS_SELECTOR, 
                     "div.EVPn8e"
                 ):
                     for related_image in related_section.find_elements_by_tag_name(
