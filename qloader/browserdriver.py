@@ -149,11 +149,11 @@ def fetch_google_image_urls(
 
             if track_related:
                 related_images = list()
-                for related_section in driver.find_elements(By.CSS_SELECTOR, 
-                    "div.EVPn8e"
+                for related_section in driver.find_elements(
+                    By.CSS_SELECTOR, "div.EVPn8e"
                 ):
-                    for related_image in related_section.find_elements_by_tag_name(
-                        "img"
+                    for related_image in related_section.find_elements(
+                        By.TAG_NAME, "img"
                     ):
                         related_images.append(
                             {
@@ -199,7 +199,7 @@ def fetch_google_image_urls(
             if see_more_anyway_button:
                 # prefer the see more anyway button
                 try:
-                    see_more_anyway_button.click()
+                    driver.execute_script("document.querySelector('.r0zKGf').click();")
                     log.debug("clicked See More Anyway")
                     random_sleep(sleep_between_interactions)
                 except selenium.common.exceptions.NoSuchElementException:
@@ -209,7 +209,7 @@ def fetch_google_image_urls(
                 log.debug("accepted cookies")
                 random_sleep(sleep_between_interactions * 10)
             elif load_more_button:
-                load_more_button.click()
+                driver.execute_script("document.querySelector('.mye4qd').click();")
                 log.debug("clicked More Results")
                 random_sleep(sleep_between_interactions * 10)
             else:

@@ -8,7 +8,7 @@ import qloader
 def test_google_images_query_chrome() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
-    max_items = 30
+    max_items = 100
 
     images_metadata = qloader.run(
         endpoint="google-images",
