@@ -204,13 +204,13 @@ def fetch_google_image_urls(
                     random_sleep(sleep_between_interactions)
                 except selenium.common.exceptions.NoSuchElementException:
                     pass
-            elif load_more_button:
-                load_bore_button.click()
-                log.debug("clicked More Results")
-                random_sleep(sleep_between_interactions * 10)
             elif accept_cookies_button:
                 accept_cookies_button.click()
                 log.debug("accepted cookies")
+                random_sleep(sleep_between_interactions * 10)
+            elif load_more_button:
+                load_more_button.click()
+                log.debug("clicked More Results")
                 random_sleep(sleep_between_interactions * 10)
             else:
                 log.debug(driver.page_source)
