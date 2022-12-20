@@ -5,7 +5,7 @@ from pathlib import Path
 import qloader
 
 
-def test_google_images_query_chrome() -> None:
+def test_google_images_query_chrome_100() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
     max_items = 100
@@ -18,6 +18,7 @@ def test_google_images_query_chrome() -> None:
         max_items=max_items,
         language="en",
         browser="Chrome",
+        keep_head=False,
     )
 
     assert (len(images_metadata) / max_items) > 0.95  # assert 95% fill rate
@@ -32,7 +33,7 @@ def test_google_images_query_chrome() -> None:
     ) > 0.95  # assert images are on disk
 
 
-def test_google_images_query_firefox() -> None:
+def test_google_images_query_firefox_10() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
     max_items = 10
@@ -45,6 +46,7 @@ def test_google_images_query_firefox() -> None:
         max_items=max_items,
         language="en",
         browser="Firefox",
+        keep_head=False,
     )
 
     assert (len(images_metadata) / max_items) > 0.95  # assert 95% fill rate
@@ -59,7 +61,7 @@ def test_google_images_query_firefox() -> None:
     ) > 0.95  # assert images are on disk
 
 
-def test_google_images_region_specific_query() -> None:
+def test_google_images_region_specific_query_20() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
     max_items = 20
@@ -73,6 +75,7 @@ def test_google_images_region_specific_query() -> None:
         language="fr",
         browser="Chrome",
         extra_query_params={"cr": "countryFR"},
+        keep_head=False,
     )
 
     assert (
@@ -80,10 +83,10 @@ def test_google_images_region_specific_query() -> None:
     ) > 0.95  # assert images are on disk
 
 
-def test_google_images_track_related() -> None:
+def test_google_images_track_related_10() -> None:
     output_path = Path(tempfile.TemporaryDirectory().name)
     metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
-    max_items = 5
+    max_items = 10
 
     images_metadata = qloader.run(
         endpoint="google-images",
@@ -95,4 +98,5 @@ def test_google_images_track_related() -> None:
         browser="Chrome",
         extra_query_params={"cr": "countryCA"},
         track_related=True,
+        keep_head=False,
     )

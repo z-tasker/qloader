@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import random
 import time
 import hashlib
@@ -13,13 +14,14 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from .logger import get_logger
 
 
-def get_browser_options(browser: str) -> Any:
+def get_browser_options(browser: str, keep_head: bool = False) -> Any:
     try:
         options = {"Firefox": FirefoxOptions(), "Chrome": ChromeOptions()}[browser]
     except KeyError:
         raise ValueError(f"Unknown browser '{browser}'")
 
-    options.add_argument("--headless")
+    if not keep_head:
+        options.add_argument("--headless")
 
     if browser == "Chrome":
         options.add_argument("--no-sandbox")
@@ -29,9 +31,9 @@ def get_browser_options(browser: str) -> Any:
 
 def random_sleep(min_time: float) -> None:
     """
-        Fuzz wait times between [min_time, min_time*2]
+    Fuzz wait times between [min_time, min_time*2]
     """
-    time.sleep(min_time + min_time * random.random())
+    time.sleep(min_time + (min_time * random.random()))
 
 
 class NoImagesInWebElementError(Exception):
@@ -64,11 +66,12 @@ def fetch_google_image_urls(
     language: str = "en",
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
+    exact: bool = False,
 ) -> List(Dict[str, str]):
     """
-        Accumulate a set of image urls.
-        The find_elements_by_css_selector approach for interacting with the page.
-        feels a little bit brittle, it's possible these values could change.
+    Accumulate a set of image urls.
+    The find_elements_by_css_selector approach for interacting with the page.
+    feels a little bit brittle, it's possible these values could change.
     """
 
     log = get_logger("fetch_google_image_urls")
@@ -81,9 +84,7 @@ def fetch_google_image_urls(
     query_params = {
         "safe": "off",
         "tbm": "isch",
-        "source": "hp",
-        "q": f'+"{query}"',
-        "oq": f'+"{query}"',
+        "q": f"+{query}" if not exact else f'+"{query}"',
         "lr": f"lang_{language}",
     }
 
@@ -107,8 +108,6 @@ def fetch_google_image_urls(
     start = time.time()
     breakpoints = 0
     while True:  # browse and download until we hit our target image count
-        scroll_to_end(driver)
-
         # get all image thumbnail results
         thumbnail_results = driver.find_elements(By.CSS_SELECTOR, "img.Q4LuWd")
         number_results = len(thumbnail_results)
@@ -155,12 +154,19 @@ def fetch_google_image_urls(
                     for related_image in related_section.find_elements(
                         By.TAG_NAME, "img"
                     ):
-                        related_images.append(
-                            {
-                                "src": related_image.get_attribute("src"),
-                                "alt": related_image.get_attribute("alt"),
-                            }
-                        )
+                        try:
+                            related_images.append(
+                                {
+                                    "src": related_image.get_attribute("src"),
+                                    "alt": related_image.get_attribute("alt"),
+                                }
+                            )
+                        except StaleElementReferenceException as exc:
+                            log.error(
+                                f"StaleElementReferenceException while collecting related images: {exc}"
+                            )
+                            continue
+
                 image_link["related_images"] = related_images
 
             result_id = hashlib.md5(
@@ -172,7 +178,7 @@ def fetch_google_image_urls(
 
         else:
             log.debug(f"Found: {len(image_links)} image links, looking for more ...")
-            random_sleep(sleep_between_interactions * 2)
+            random_sleep(sleep_between_interactions)
 
             scroll_to_end(driver)
 
@@ -207,14 +213,17 @@ def fetch_google_image_urls(
             elif accept_cookies_button:
                 accept_cookies_button.click()
                 log.debug("accepted cookies")
-                random_sleep(sleep_between_interactions * 10)
+                random_sleep(sleep_between_interactions * 2)
             elif load_more_button:
                 driver.execute_script("document.querySelector('.mye4qd').click();")
                 log.debug("clicked More Results")
-                random_sleep(sleep_between_interactions * 10)
+                random_sleep(sleep_between_interactions * 2)
             else:
                 log.debug(driver.page_source)
-                log.warning(f"No path for more images found")
+                log.warning(
+                    f"No path for more images found, scrolling to bottom of page"
+                )
+            scroll_to_end(driver)
 
         # move the result startpoint further down
         results_start = len(thumbnail_results)

@@ -8,9 +8,9 @@ from pathlib import Path
 
 class EnvDefault(argparse.Action):
     """
-        An argparse action class that auto-sets missing default values from env vars. 
-        Defaults to requiring the argument, meaning an error will be thrown if no value 
-        was directly passed to argparse and the env_default returned None as well.
+    An argparse action class that auto-sets missing default values from env vars.
+    Defaults to requiring the argument, meaning an error will be thrown if no value
+    was directly passed to argparse and the env_default returned None as well.
     """
 
     def __init__(self, envvar, required=True, default=None, **kwargs):
@@ -25,7 +25,7 @@ class EnvDefault(argparse.Action):
 
 
 def env_default(envvar):
-    """ functional sugar for EnvDefault """
+    """functional sugar for EnvDefault"""
 
     def wrapper(**kwargs):
         return EnvDefault(envvar, **kwargs)

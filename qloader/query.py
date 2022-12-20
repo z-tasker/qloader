@@ -31,8 +31,7 @@ from .logger import get_logger
 
 
 def hash_image(image: Image, image_url: str) -> str:
-    """
-    """
+    """ """
     hash_tuple = (imagehash.colorhash(image), imagehash.average_hash(image))
     name = ""
     for hash_component in hash_tuple:
@@ -47,7 +46,7 @@ def hash_image(image: Image, image_url: str) -> str:
 
 def persist_image(folder: Path, url: str) -> None:
     """
-        Write image to disk
+    Write image to disk
     """
     folder.mkdir(exist_ok=True, parents=True)
     image_content = requests.get(url, timeout=5).content
@@ -61,7 +60,7 @@ def persist_image(folder: Path, url: str) -> None:
 
 class ManifestDocument(UserDict):
     """
-        This placeholder class is where we could formalize a data structure for the output
+    This placeholder class is where we could formalize a data structure for the output
     """
 
     pass
@@ -94,7 +93,9 @@ class UnacceptableErrorRateError(Exception):
 
 
 def get_webdriver(
-    browser: str, browser_options: Dict[str, Any], driver_path: Optional[str] = None,
+    browser: str,
+    browser_options: Dict[str, Any],
+    driver_path: Optional[str] = None,
 ) -> WebDriver:
     log = get_logger(f"get_webdriver.{browser}")
     if driver_path is not None:
@@ -123,15 +124,16 @@ def get_google_images(
     driver_path: Optional[str] = None,
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
+    keep_head: bool = False,
 ) -> Generator[ManifestDocument, None, None]:
     """
-        Save images to disk and yield a ManifestDocument for each image
+    Save images to disk and yield a ManifestDocument for each image
     """
     log = get_logger("get_google_images")
 
     store.mkdir(parents=True, exist_ok=True)
     errors = defaultdict(int)
-    browser_options = get_browser_options(browser)
+    browser_options = get_browser_options(browser, keep_head)
     with get_webdriver(
         browser=browser, browser_options=browser_options, driver_path=driver_path
     ) as driver:
@@ -228,9 +230,10 @@ def run(
     acceptable_error_rate: float = 0.20,
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
+    keep_head: bool = False,
 ) -> List[Dict[str, Any]]:
     """
-    Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path} 
+    Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path}
     depending on the endpoint and type of data.
     """
     output_path.mkdir(parents=True, exist_ok=True)
@@ -260,6 +263,7 @@ def run(
                 driver_path=driver_path,
                 extra_query_params=extra_query_params,
                 track_related=track_related,
+                keep_head=keep_head,
             )
         ):
             doc.update(metadata)
@@ -274,7 +278,10 @@ def run(
 
     if manifest_file is not None:
         Path(manifest_file).write_text(
-            json.dumps([dict(d) for d in documents], indent=2,)
+            json.dumps(
+                [dict(d) for d in documents],
+                indent=2,
+            )
         )
 
     log.debug(
