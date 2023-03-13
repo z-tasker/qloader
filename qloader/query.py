@@ -162,6 +162,7 @@ def get_google_images(
                 log.debug(f"{i}: saved {image_link['src']}")
                 manifest_document = ManifestDocument(
                     {
+                        "i": i,
                         "query": query_terms,
                         "image_id": image_id,
                         "image_url": image_link["src"],
@@ -178,6 +179,7 @@ def get_google_images(
                         related_manifests.append(
                             ManifestDocument(
                                 {
+                                    "i": i,
                                     "query": query_terms,
                                     "image_id": related_image_id,
                                     "image_url": related_image["src"],
