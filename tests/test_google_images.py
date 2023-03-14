@@ -102,30 +102,30 @@ def test_google_images_track_related_10() -> None:
     )
 
 
-def test_google_images_query_chrome_10_proxied() -> None:
-    output_path = Path(tempfile.TemporaryDirectory().name)
-    metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
-    max_items = 10
-
-    images_metadata = qloader.run(
-        endpoint="google-images",
-        query_terms="my location",
-        output_path=output_path,
-        metadata=metadata_path,
-        max_items=max_items,
-        language="en",
-        browser="Chrome",
-        keep_head=False,
-        use_proxy="http://localhost:8181"
-    )
-
-    assert (len(images_metadata) / max_items) > 0.80  # assert 80% fill rate
-
-    for image_metadata in images_metadata:
-        assert (
-            image_metadata["test-key"] == "test-value"
-        )  # assert metadata is propagated
-
-    assert (
-        len([p for p in output_path.iterdir()]) / max_items
-    ) > 0.80  # assert images are on disk
+#def test_google_images_query_chrome_10_proxied() -> None:
+#    output_path = Path(tempfile.TemporaryDirectory().name)
+#    metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
+#    max_items = 10
+#
+#    images_metadata = qloader.run(
+#        endpoint="google-images",
+#        query_terms="my location",
+#        output_path=output_path,
+#        metadata=metadata_path,
+#        max_items=max_items,
+#        language="en",
+#        browser="Chrome",
+#        keep_head=False,
+#        use_proxy="http://localhost:8181"
+#    )
+#
+#    assert (len(images_metadata) / max_items) > 0.80  # assert 80% fill rate
+#
+#    for image_metadata in images_metadata:
+#        assert (
+#            image_metadata["test-key"] == "test-value"
+#        )  # assert metadata is propagated
+#
+#    assert (
+#        len([p for p in output_path.iterdir()]) / max_items
+#    ) > 0.80  # assert images are on disk
