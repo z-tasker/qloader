@@ -68,22 +68,30 @@ class ManifestDocument(UserDict):
 
 def get_url_headers(image_url: str) -> Dict[str, Any]:
 
-    url_headers = requests.head(image_url).headers
+    try:
+        url_headers = requests.head(image_url, timeout=5).headers
 
-    headers = {
-        header_key.replace("-", "_"): url_headers[header_key]
-        for header_key in ["last-modified", "content-type", "content-length", "server"]
-        if header_key in url_headers
-    }
+        headers = {
+            header_key.replace("-", "_"): url_headers[header_key]
+            for header_key in [
+                "last-modified",
+                "content-type",
+                "content-length",
+                "server",
+            ]
+            if header_key in url_headers
+        }
 
-    if "last_modified" in headers:
-        # turn last_modified date into ms since epoch
-        headers["last_modified"] = int(
-            datetime.strptime(
-                headers["last_modified"], "%a, %d %b %Y %H:%M:%S %Z"
-            ).timestamp()
-            * 1000
-        )
+        if "last_modified" in headers:
+            # turn last_modified date into ms since epoch
+            headers["last_modified"] = int(
+                datetime.strptime(
+                    headers["last_modified"], "%a, %d %b %Y %H:%M:%S %Z"
+                ).timestamp()
+                * 1000
+            )
+    except requests.exceptions.Timeout as exc:
+        headers = None
 
     return headers
 
@@ -125,7 +133,7 @@ def get_google_images(
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
     keep_head: bool = False,
-    use_proxy: Optional[str] = None
+    use_proxy: Optional[str] = None,
 ) -> Generator[ManifestDocument, None, None]:
     """
     Save images to disk and yield a ManifestDocument for each image

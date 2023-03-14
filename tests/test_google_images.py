@@ -102,7 +102,7 @@ def test_google_images_track_related_10() -> None:
     )
 
 
-#def test_google_images_query_chrome_10_proxied() -> None:
+# def test_google_images_query_chrome_10_proxied() -> None:
 #    output_path = Path(tempfile.TemporaryDirectory().name)
 #    metadata_path = Path(__file__).parent.joinpath("test-metadata.json")
 #    max_items = 10

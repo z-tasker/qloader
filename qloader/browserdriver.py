@@ -16,7 +16,9 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from .logger import get_logger
 
 
-def get_browser_options(browser: str, keep_head: bool = False, use_proxy: Optional[str] = None) -> Any:
+def get_browser_options(
+    browser: str, keep_head: bool = False, use_proxy: Optional[str] = None
+) -> Any:
     try:
         options = {"Firefox": FirefoxOptions(), "Chrome": ChromeOptions()}[browser]
     except KeyError:
@@ -151,7 +153,9 @@ def fetch_google_image_urls(
                     if skipped_empty_elements >= 10:
                         page_source_file = Path(tempfile.NamedTemporaryFile().name)
                         page_source_file.write_text(driver.page_source)
-                        raise NoImagesInWebElementError(f"wrote page source to: {page_source_file}") from exc
+                        raise NoImagesInWebElementError(
+                            f"wrote page source to: {page_source_file}"
+                        ) from exc
                     continue
             image_link = dict()
             if actual_image.get_attribute(
