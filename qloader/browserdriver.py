@@ -14,7 +14,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from .logger import get_logger
 
 
-def get_browser_options(browser: str, keep_head: bool = False) -> Any:
+def get_browser_options(browser: str, keep_head: bool = False, use_proxy: Optional[str] = None) -> Any:
     try:
         options = {"Firefox": FirefoxOptions(), "Chrome": ChromeOptions()}[browser]
     except KeyError:
@@ -25,6 +25,9 @@ def get_browser_options(browser: str, keep_head: bool = False) -> Any:
 
     if browser == "Chrome":
         options.add_argument("--no-sandbox")
+
+    if use_proxy is not None:
+        options.add_argument(f"--proxy-server={use_proxy}")
 
     return options
 
