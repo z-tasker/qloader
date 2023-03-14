@@ -125,6 +125,7 @@ def get_google_images(
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
     keep_head: bool = False,
+    use_proxy: Optional[str] = None
 ) -> Generator[ManifestDocument, None, None]:
     """
     Save images to disk and yield a ManifestDocument for each image
@@ -133,7 +134,7 @@ def get_google_images(
 
     store.mkdir(parents=True, exist_ok=True)
     errors = defaultdict(int)
-    browser_options = get_browser_options(browser, keep_head)
+    browser_options = get_browser_options(browser, keep_head, use_proxy)
     with get_webdriver(
         browser=browser, browser_options=browser_options, driver_path=driver_path
     ) as driver:
@@ -233,6 +234,7 @@ def run(
     extra_query_params: Optional[Dict[str, str]] = None,
     track_related: bool = False,
     keep_head: bool = False,
+    use_proxy: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Executes a query and returns a list of objects returned by that query, may also leave data on disk at {output_path}
@@ -266,6 +268,7 @@ def run(
                 extra_query_params=extra_query_params,
                 track_related=track_related,
                 keep_head=keep_head,
+                use_proxy=use_proxy,
             )
         ):
             doc.update(metadata)
