@@ -3,7 +3,9 @@ import os
 import random
 import time
 import hashlib
+import tempfile
 from collections import defaultdict
+from pathlib import Path
 
 import selenium
 from selenium import webdriver
@@ -110,6 +112,7 @@ def fetch_google_image_urls(
     results_seen = list()
     start = time.time()
     breakpoints = 0
+    skipped_empty_elements = 0
     while True:  # browse and download until we hit our target image count
         # get all image thumbnail results
         thumbnail_results = driver.find_elements(By.CSS_SELECTOR, "img.Q4LuWd")
@@ -136,9 +139,20 @@ def fetch_google_image_urls(
                 actual_image = pick_best_actual_image(
                     driver.find_elements(By.CSS_SELECTOR, "img.n3VNCb")
                 )
-            except NoImagesInWebElementError as exc:
-                log.debug("skipping empty element")
-                continue
+            except NoImagesInWebElementError:
+                try:
+                    actual_image = pick_best_actual_image(
+                        driver.find_elements(By.CSS_SELECTOR, "img.r48jcc")
+                    )
+                    log.debug("found image at alternate tag")
+                except NoImagesInWebElementError as exc:
+                    log.debug("skipping empty element")
+                    skipped_empty_elements += 1
+                    if skipped_empty_elements >= 10:
+                        page_source_file = Path(tempfile.NamedTemporaryFile().name)
+                        page_source_file.write_text(driver.page_source)
+                        raise NoImagesInWebElementError(f"wrote page source to: {page_source_file}") from exc
+                    continue
             image_link = dict()
             if actual_image.get_attribute(
                 "src"
