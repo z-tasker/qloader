@@ -9,6 +9,7 @@ from pathlib import Path
 
 import selenium
 from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -60,7 +61,7 @@ def pick_best_actual_image(actual_images: List[WebElement]) -> WebElement:
                 scores[i] += 1
                 if "encrypted-tbn0.gstatic.com" in actual_image.get_attribute("src"):
                     scores[i] -= 1
-            except selenium.common.exceptions.StaleElementReferenceException as exc:
+            except StaleElementReferenceException as exc:
                 # this error is often accompanied by: Message: stale element reference: element is not attached to the page document
                 # could be some race condition, or maybe the page is changing between the actual_images getting populated and this method getting called
                 # either way - we will continue here and raise an error later if there are no images to choose from
@@ -174,10 +175,10 @@ def fetch_google_image_urls(
                 ) and "http" in actual_image.get_attribute("src"):
                     image_link.update({"src": actual_image.get_attribute("src")})
                     image_link.update({"alt": actual_image.get_attribute("alt")})
-            except selenium.common.exceptions.StaleElementReferenceException as exc:
+                else:
+                    continue
+            except StaleElementReferenceException as exc:
                 log.warning(f"skipping image due to stale reference: {exc}")
-                continue
-            else:
                 continue
 
             if track_related:
