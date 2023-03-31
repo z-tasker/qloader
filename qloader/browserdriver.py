@@ -55,9 +55,17 @@ def pick_best_actual_image(actual_images: List[WebElement]) -> WebElement:
     else:
         scores = defaultdict(int)
         for i, actual_image in enumerate(actual_images):
-            scores[i] += 1
-            if "encrypted-tbn0.gstatic.com" in actual_image.get_attribute("src"):
-                scores[i] -= 1
+            try:
+                scores[i] += 1
+                if "encrypted-tbn0.gstatic.com" in actual_image.get_attribute("src"):
+                    scores[i] -= 1
+            except selenium.common.exceptions.StaleElementReferenceException as exc:
+                # this error is often accompanied by: Message: stale element reference: element is not attached to the page document
+                # could be some race condition, or maybe the page is changing between the actual_images getting populated and this method getting called
+                # either way - we will continue here and raise an error later if there are no images to choose from
+                continue
+        if len(scores) == 0:
+            raise NoImagesInWebElementError()
         top_scorers = list()
         for i, score in enumerate(scores):
             if score == max(scores.values()):
