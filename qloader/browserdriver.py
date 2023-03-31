@@ -48,6 +48,7 @@ class NoImagesInWebElementError(Exception):
 
 
 def pick_best_actual_image(actual_images: List[WebElement]) -> WebElement:
+    log = get_logger("pick_best_actual_image")
     if len(actual_images) == 0:
         raise NoImagesInWebElementError()
     elif len(actual_images) == 1:
@@ -63,6 +64,7 @@ def pick_best_actual_image(actual_images: List[WebElement]) -> WebElement:
                 # this error is often accompanied by: Message: stale element reference: element is not attached to the page document
                 # could be some race condition, or maybe the page is changing between the actual_images getting populated and this method getting called
                 # either way - we will continue here and raise an error later if there are no images to choose from
+                log.warning(f"skipping image due to stale reference: {exc}")
                 continue
         if len(scores) == 0:
             raise NoImagesInWebElementError()
@@ -166,12 +168,15 @@ def fetch_google_image_urls(
                         ) from exc
                     continue
             image_link = dict()
-            if actual_image.get_attribute(
-                "src"
-            ) and "http" in actual_image.get_attribute("src"):
-                image_link.update({"src": actual_image.get_attribute("src")})
-                image_link.update({"alt": actual_image.get_attribute("alt")})
-
+            try:
+                if actual_image.get_attribute(
+                    "src"
+                ) and "http" in actual_image.get_attribute("src"):
+                    image_link.update({"src": actual_image.get_attribute("src")})
+                    image_link.update({"alt": actual_image.get_attribute("alt")})
+            except selenium.common.exceptions.StaleElementReferenceException as exc:
+                log.warning(f"skipping image due to stale reference: {exc}")
+                continue
             else:
                 continue
 
